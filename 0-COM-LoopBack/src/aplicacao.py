@@ -9,6 +9,7 @@
 
 from enlace import *
 import time
+from loader import Screen
 
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
@@ -25,60 +26,74 @@ def main():
     # Ativa comunicacao
     com.enable()
 
-    # Endereco da imagem a ser transmitida
-    imageR = "./imgs/imageC.png"
+    # Define a role selecionada na GUI
+    print('OBTAINED CHOICE: ',screen.getSelected())
+    role = screen.getSelected()
 
-    # Endereco da imagem a ser salva
-    imageW = "./imgs/recebida.png"
+    if role == 'client':
+        # Endereco da imagem a ser transmitida
+        imageR = "./imgs/imageC.png"
+        # Log
+        print("-------------------------")
+        print("Comunicação inicializada")
+        print("  porta : {}".format(com.fisica.name))
+        print("-------------------------")
 
-    # Log
-    print("-------------------------")
-    print("Comunicação inicializada")
-    print("  porta : {}".format(com.fisica.name))
-    print("-------------------------")
+        # Carrega imagem
+        print ("Carregando imagem para transmissão :")
+        print (" - {}".format(imageR))
+        print("-------------------------")
+        txBuffer = open(imageR, 'rb').read()
+        txLen    = len(txBuffer)
+        print(txLen)
 
-    # Carrega imagem
-    print ("Carregando imagem para transmissão :")
-    print (" - {}".format(imageR))
-    print("-------------------------")
-    txBuffer = open(imageR, 'rb').read()
-    txLen    = len(txBuffer)
-    print(txLen)
+        # Transmite imagem
+        print("Transmitindo .... {} bytes".format(txLen))
+        com.sendData(txBuffer)
 
-    # Transmite imagem
-    print("Transmitindo .... {} bytes".format(txLen))
-    com.sendData(txBuffer)
+        # espera o fim da transmissão
+        while(com.tx.getIsBussy()):
+            pass
 
-    # espera o fim da transmissão
-    while(com.tx.getIsBussy()):
-        pass
+        # Atualiza dados da transmissão
+        txSize = com.tx.getStatus()
+        print ("Transmitido       {} bytes ".format(txSize))
 
-    # Atualiza dados da transmissão
-    txSize = com.tx.getStatus()
-    print ("Transmitido       {} bytes ".format(txSize))
+    elif role == 'server':
+        # Endereco da imagem a ser salva
+        imageW = "./imgs/recebida.png"
+        # Faz a recepção dos dados
+        print ("Recebendo dados .... ")
+        rxBuffer, nRx = com.getData(txLen)
 
-    # Faz a recepção dos dados
-    print ("Recebendo dados .... ")
-    rxBuffer, nRx = com.getData(txLen)
+        # log
+        print ("Lido              {} bytes ".format(nRx))
 
-    # log
-    print ("Lido              {} bytes ".format(nRx))
+        # Salva imagem recebida em arquivo
+        print("-------------------------")
+        print ("Salvando dados no arquivo :")
+        print (" - {}".format(imageW))
+        f = open(imageW, 'wb')
+        f.write(rxBuffer)
+        # Fecha arquivo de imagem
+        f.close()
 
-    # Salva imagem recebida em arquivo
-    print("-------------------------")
-    print ("Salvando dados no arquivo :")
-    print (" - {}".format(imageW))
-    f = open(imageW, 'wb')
-    f.write(rxBuffer)
+        # Encerra comunicação
+        print("-------------------------")
+        print("Comunicação encerrada")
+        print("-------------------------")
+        com.disable()
 
-    # Fecha arquivo de imagem
-    f.close()
+    else:
+        print('Ocorreu um erro wtf dude')
+    
 
-    # Encerra comunicação
-    print("-------------------------")
-    print("Comunicação encerrada")
-    print("-------------------------")
-    com.disable()
+# if __name__ == "__main__":
+#     main()
 
-if __name__ == "__main__":
-    main()
+screen = Screen()
+screen.setFn(main)
+screen.start()
+
+
+
