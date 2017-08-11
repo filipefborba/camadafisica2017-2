@@ -1,5 +1,5 @@
 # -*- coding: utf-8 -*-
-import Tkinter as tk
+import tkinter as tk
 import time
 from threading import Thread
 
@@ -26,11 +26,11 @@ class Screen:
         self.title2.configure(font=('calibri', 15, 'bold'))
         self.title2.grid(row=1, rowspan=1, column=0, sticky='nsew')
         self.clientButton = tk.Button(self.window)
-        self.clientButton.configure(text='SERVER', command=self.setClient)
+        self.clientButton.configure(text='CLIENT', command=self.setClient)
         self.clientButton.configure(font=('pixelmix', 11))
         self.clientButton.grid(row=6, rowspan=1, column=0, sticky='nsew')
         self.serverButton = tk.Button(self.window)
-        self.serverButton.configure(text='CLIENT', command=self.setServer)
+        self.serverButton.configure(text='SERVER', command=self.setServer)
         self.serverButton.configure(font=('pixelmix', 11))
         self.serverButton.grid(row=7, rowspan=1, column=0, sticky='nsew')
 

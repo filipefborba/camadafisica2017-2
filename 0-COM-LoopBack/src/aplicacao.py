@@ -16,8 +16,8 @@ from loader import Screen
 #   python -m serial.tools.list_ports
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-#serialName = "COM3"                  # Windows(variacao de)
+#serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
+serialName = "COM3"                  # Windows(variacao de)
 
 def main():
     # Inicializa enlace
@@ -60,6 +60,8 @@ def main():
         print ("Transmitido       {} bytes ".format(txSize))
 
     elif role == 'server':
+        #5992 é o tamanho da foto
+        txLen = 5992
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
         # Faz a recepção dos dados
@@ -86,7 +88,7 @@ def main():
 
     else:
         print('Ocorreu um erro wtf dude')
-    
+
 
 # if __name__ == "__main__":
 #     main()
@@ -94,6 +96,3 @@ def main():
 screen = Screen()
 screen.setFn(main)
 screen.start()
-
-
-
