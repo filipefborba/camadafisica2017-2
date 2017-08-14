@@ -10,6 +10,8 @@
 from enlace import *
 import time
 from loader import Screen
+from datetime import datetime
+
 
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
@@ -21,10 +23,10 @@ serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
 
 def main():
     # Inicializa enlace
-    com = enlace(serialName)
+    # com = enlace(serialName)
 
-    # Ativa comunicacao
-    com.enable()
+    # # Ativa comunicacao
+    # com.enable()
 
     # Define a role selecionada na GUI
     print('OBTAINED CHOICE: ',screen.getSelected())
@@ -32,7 +34,16 @@ def main():
 
     if role == 'client':
         # Endereco da imagem a ser transmitida
+        screen.updateText('Insira o arquivo abaixo')
+        screen.showInsertBtn()
         imageR = "./imgs/imageC.png"
+        txBuffer = open(imageR, 'rb').read()
+        
+        txlalala  = hex(1312321321)
+        txlalala += txBuffer
+        print(txlalala)
+    
+        #print(txBuffer)
         # Log
         print("-------------------------")
         print("Comunicação inicializada")
@@ -48,16 +59,21 @@ def main():
         print(txLen)
 
         # Transmite imagem
+        now = datetime.now().microsecond
         print("Transmitindo .... {} bytes".format(txLen))
         com.sendData(txBuffer)
-
+    
         # espera o fim da transmissão
         while(com.tx.getIsBussy()):
             pass
 
         # Atualiza dados da transmissão
         txSize = com.tx.getStatus()
+        finished = datetime.now().microsecond
+        delta = now - finished
         print ("Transmitido       {} bytes ".format(txSize))
+        print ("Processo finalizado em ",delta," ms")
+
 
     elif role == 'server':
         # Endereco da imagem a ser salva
