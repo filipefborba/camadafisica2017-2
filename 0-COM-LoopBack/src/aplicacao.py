@@ -69,6 +69,8 @@ def main():
 
         # Atualiza dados da transmissão
         txSize = com.tx.getStatus()
+
+        #Calcula o tempo de transmissão
         finished = datetime.now().microsecond
         delta = now - finished
         print ("Transmitido       {} bytes ".format(txSize))
@@ -80,6 +82,10 @@ def main():
         txLen = 5992
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
+
+        #Começa a calcular o tempo de recepção
+        now = datetime.now().microsecond
+
         # Faz a recepção dos dados
         print ("Recebendo dados .... ")
         rxBuffer, nRx = com.getData(txLen)
@@ -96,6 +102,11 @@ def main():
         # Fecha arquivo de imagem
         f.close()
 
+        #Calcula o tempo de recepção
+        finished = datetime.now().microsecond
+        delta = now - finished
+        print ("Processo finalizado em ",delta," ms")
+
         # Encerra comunicação
         print("-------------------------")
         print("Comunicação encerrada")
@@ -103,7 +114,7 @@ def main():
         com.disable()
 
     else:
-        print('Ocorreu um erro wtf dude')
+        print('Ocorreu um erro...')
 
 
 # if __name__ == "__main__":
