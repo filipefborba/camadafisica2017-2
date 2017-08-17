@@ -39,9 +39,9 @@ def main():
         imageR = "./imgs/imageC.png"
         txBuffer = open(imageR, 'rb').read()
         
-        txlalala  = hex(1312321321)
-        txlalala += txBuffer
-        print(txlalala)
+        # txlalala  = hex(1312321321)
+        # txlalala += txBuffer
+        # print(txlalala)
     
         #print(txBuffer)
         # Log
@@ -78,14 +78,11 @@ def main():
 
 
     elif role == 'server':
-        #5992 é o tamanho da foto
-        txLen = 5992
+        #Tamanho em bytes do arquivo que está sendo recebido
+        txLen = 2076
         
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
-
-        #Começa a calcular o tempo de recepção
-        now = datetime.now().microsecond
 
         # Faz a recepção dos dados
         print ("Recebendo dados .... ")
@@ -93,6 +90,9 @@ def main():
 
         # log
         print ("Lido              {} bytes ".format(nRx))
+
+        #Começa a calcular o tempo de recepção
+        now = datetime.now().microsecond
 
         # Salva imagem recebida em arquivo
         print("-------------------------")
@@ -112,7 +112,6 @@ def main():
         print("-------------------------")
         print("Comunicação encerrada")
         print("-------------------------")
-        com.disable()
 
     else:
         print('Ocorreu um erro...')

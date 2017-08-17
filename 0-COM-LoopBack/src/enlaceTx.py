@@ -89,6 +89,7 @@ class TX(object):
         """
         return(self.threadMutex)
 
+
     ################################
     # Application  interface       #
     ################################
@@ -96,11 +97,3 @@ class TX(object):
         """ Send data over the enlace interface
         """
         self.tx.sendBuffer(data)
-
-    def getData(self, size):
-        """ Get n data over the enlace interface
-
-        Return the byte array and the size of the buffer
-        """
-        data = self.rx.getNData(size)
-        return(data, len(data))
