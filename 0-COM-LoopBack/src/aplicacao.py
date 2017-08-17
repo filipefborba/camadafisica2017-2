@@ -23,10 +23,10 @@ serialName = "COM3"                  # Windows(variacao de)
 
 def main():
     # Inicializa enlace
-    # com = enlace(serialName)
+    com = enlace(serialName)
 
     # # Ativa comunicacao
-    # com.enable()
+    com.enable()
 
     # Define a role selecionada na GUI
     print('OBTAINED CHOICE: ',screen.getSelected())
@@ -80,6 +80,7 @@ def main():
     elif role == 'server':
         #5992 é o tamanho da foto
         txLen = 5992
+        
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
 
