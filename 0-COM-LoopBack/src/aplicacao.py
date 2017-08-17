@@ -12,14 +12,13 @@ import time
 from loader import Screen
 from datetime import datetime
 
-
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
 #   python -m serial.tools.list_ports
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-#serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-serialName = "COM3"                  # Windows(variacao de)
+serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
+# serialName = "COM3"                  # Windows(variacao de)
 
 def main():
     # Inicializa enlace
@@ -33,48 +32,52 @@ def main():
     role = screen.getSelected()
 
     if role == 'client':
+        print('ROLE : CLIENT')
         # Endereco da imagem a ser transmitida
         screen.updateText('Insira o arquivo abaixo')
-        screen.showInsertBtn()
-        imageR = "./imgs/imageC.png"
-        txBuffer = open(imageR, 'rb').read()
+        if screen.getImageDir() != None:
+            imageR = screen.getImageDir()
+            print(imageR)
+            # txBuffer = open(imageR, 'rb').read()
+            # txlalala  = hex(1312321321)
+            # txlalala += txBuffer
+            # print(txlalala)
         
-        txlalala  = hex(1312321321)
-        txlalala += txBuffer
-        print(txlalala)
-    
-        #print(txBuffer)
-        # Log
-        print("-------------------------")
-        print("Comunicação inicializada")
-        print("  porta : {}".format(com.fisica.name))
-        print("-------------------------")
+            #print(txBuffer)
+            # Log
+            print("-------------------------")
+            print("Comunicação inicializada")
+            print("  porta : {}".format(com.fisica.name))
+            print("-------------------------")
 
-        # Carrega imagem
-        print ("Carregando imagem para transmissão :")
-        print (" - {}".format(imageR))
-        print("-------------------------")
-        txBuffer = open(imageR, 'rb').read()
-        txLen    = len(txBuffer)
-        print(txLen)
+            # Carrega imagem
+            print ("Carregando imagem para transmissão :")
+            print (" - {}".format(imageR))
+            print("-------------------------")
+            txBuffer = open(imageR, 'rb').read()
+            txLen    = len(txBuffer)
+            print(txLen)
 
-        # Transmite imagem
-        now = datetime.now().microsecond
-        print("Transmitindo .... {} bytes".format(txLen))
-        com.sendData(txBuffer)
-    
-        # espera o fim da transmissão
-        while(com.tx.getIsBussy()):
-            pass
+            # Transmite imagem
+            now = datetime.now().microsecond
+            print("Transmitindo .... {} bytes".format(txLen))
+            com.sendData(txBuffer)
+        
+            # espera o fim da transmissão
+            while(com.tx.getIsBussy()):
+                pass
 
-        # Atualiza dados da transmissão
-        txSize = com.tx.getStatus()
+            # Atualiza dados da transmissão
+            txSize = com.tx.getStatus()
 
-        #Calcula o tempo de transmissão
-        finished = datetime.now().microsecond
-        delta = now - finished
-        print ("Transmitido       {} bytes ".format(txSize))
-        print ("Processo finalizado em ",delta," ms")
+            #Calcula o tempo de transmissão
+            finished = datetime.now().microsecond
+            delta = now - finished
+            print ("Transmitido       {} bytes ".format(txSize))
+            print ("Processo finalizado em ",delta," ms")
+            com.disable()
+        else:
+            print('Nenhuma imagem selecionada')
 
 
     elif role == 'server':

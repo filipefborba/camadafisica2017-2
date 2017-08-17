@@ -53,6 +53,8 @@ class enlace(object):
     def sendData(self, data):
         """ Send data over the enlace interface
         """
+        
+        print(data)
         self.tx.sendBuffer(data)
 
     def getData(self, size):
@@ -61,3 +63,19 @@ class enlace(object):
         """
         data = self.rx.getNData(size)
         return(data, len(data))
+
+
+class FileHandler(object):
+    """ This class implements methods to the interface between Enlace and Application
+    """
+    def __init__(self, name):
+        """ Initializes the enlace class
+        """
+        self.fisica      = fisica(name)
+        self.rx          = RX(self.fisica)
+        self.tx          = TX(self.fisica)
+        self.connected   = False
+
+
+    
+

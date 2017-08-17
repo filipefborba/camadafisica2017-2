@@ -9,6 +9,7 @@ class Screen:
         self.btnfn = None
         self.startTrigger = False
         self.role = 'none'
+        self.filedir = None
         print('Screen Started')
         self.window = tk.Tk()
         self.window.geometry('250x200')
@@ -54,8 +55,6 @@ class Screen:
         self.insertButton.configure(fg='black',bg='#1e9622',highlightbackground='#006400')
         self.insertButton.grid(row=4, rowspan=1, column=0, sticky='nsew')
 
-        Thread(target=self.btnfn).start()
-
     def setServer(self):
         self.hideRoleButtons()
         self.role = 'server'
@@ -68,7 +67,6 @@ class Screen:
 
     # def showInsertBtn(self):
         
-
     def updateText(self,txt):
         self.title2.configure(text=txt.upper())
 
@@ -78,28 +76,31 @@ class Screen:
     def setFn(self,fn):
         self.btnfn = fn
 
+
     def askopenfile(self):
-        filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("all files","*.*")))
+        filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("png files","*.png"),("all files","*.*")))
         self.filedir = filename
         split = filename.split('/')
         self.insertButton.configure(text='Arquivo: ' + split[len(split) - 1])
-        print(filename)
         if filename == '':
             print('NO FILE CHOSEN')
         else:
-            self.sendButton = tk.Button()
+            self.sendButton = tk.Button(self.window,command=self.btnfn)
             self.sendButton.configure(text='Enviar',fg='white',bg='#006400',highlightbackground='#006400',font=('calibri', 15, 'bold'))
             self.sendButton.place(rely=1.0, relx=1.0, x=-162.5, y=-5, anchor='sw')
+
+    def getImageDir(self):
+        return self.filedir
         
 
     def onScriptStopped(self):
         self.startTrigger = False
 
-    def StartScript(self):
-        if not self.startTrigger:
-            self.startTrigger = True
-            # mainThread = Thread(target=self.btnfn)
-            self.btnfn()
+    # def StartScript(self):
+    #     if not self.startTrigger:
+    #         self.startTrigger = True
+    #         # mainThread = Thread(target=self.btnfn)
+    #         self.btnfn()
             # mainThread.start()
 
 		# self.infoLabel.configure(text='Click "Close Connection" to\n\nstop accepting new players'.upper())
