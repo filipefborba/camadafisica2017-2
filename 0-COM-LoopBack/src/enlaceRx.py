@@ -36,6 +36,8 @@ class RX(object):
                 rxTemp, nRx = self.fisica.read(self.READLEN)
                 if (nRx > 0):
                     self.buffer += rxTemp
+                print("Recebendo dados...")
+                print(self.buffer)
                 time.sleep(0.001)
 
     def threadStart(self):
