@@ -30,29 +30,12 @@ class FileHandler(object):
         self.filePath = dataPath
         self.data = open(dataPath,'rb')
         self.fileSize = os.path.getsize(dataPath)
-    
-        # self.fisica      = fisica(name)
-
-
-        #Construção do HEAD
-        # def pack(self):
-        #     self.buildHead(data)
-        #     self.buildEOF(data)
-            
-        
-        # def unpack(self):
-        #     """ Unpacks files and returns it
-        #     """
-        
 
     def buildHead(self):
         headSTART  = 0xFF
-        print(self.data.read())
         fileExtension = self.filePath.split('.')
         fileExtension = fileExtension[len(fileExtension) - 1]
-        print('file extension : ' + fileExtension)
-        md5 = self.generate_md5()
-        print ('md5 checksum : ' + md5)
+        # md5 = self.generate_md5()
 
         extArray = self.generate_extArr(fileExtension)
 
@@ -74,12 +57,12 @@ class FileHandler(object):
         print(headStruct.parse(head))
         return(head)
 
-    def generate_md5(self):
-        hash_md5 = hashlib.md5()
-        with open(self.filePath, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
+    # def generate_md5(self):
+    #     hash_md5 = hashlib.md5()
+    #     with open(self.filePath, "rb") as f:
+    #         for chunk in iter(lambda: f.read(4096), b""):
+    #             hash_md5.update(chunk)
+    #     return hash_md5.hexdigest()
 
     def generate_extArr(self,fileExt):
         arr = []
@@ -93,12 +76,7 @@ class FileHandler(object):
         print(arr)
         return arr
 
-
-        # def buildEOF(self, dataLen):
-        #     eof = dataLen
-        #     eofStruct = Struct(
-        #                     "EOF" / Int8ub
-        #     )
+    def 
     
 
 
