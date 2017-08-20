@@ -66,15 +66,25 @@ class enlace(object):
 
 
 class FileHandler(object):
-    """ This class implements methods to the interface between Enlace and Application
+    """ This class handles files to package and unpack them,
+    adding necessary data for a successful file transfer
     """
     def __init__(self, name):
         """ Initializes the enlace class
         """
         self.fisica      = fisica(name)
-        self.rx          = RX(self.fisica)
-        self.tx          = TX(self.fisica)
-        self.connected   = False
+        self.
+        #Construção do HEAD
+        headSTART  = 0xFF 
+        headStruct = Struct("start" / Int8ub, "size"  / Int16ub )
+
+        def buildHead(self, dataLen):
+            head = headStruct.build(dict(start = self.headSTART, size = dataLen))
+            return(head)
+
+        def buildEOF(self, dataLen):
+            eof = 
+    
 
 
     
