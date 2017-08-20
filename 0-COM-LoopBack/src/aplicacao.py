@@ -82,14 +82,14 @@ def main():
 
     elif role == 'server':
         #Tamanho em bytes do arquivo que está sendo recebido
-        txLen = 2076
+        # txLen = 2076
         
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
 
         # Faz a recepção dos dados
         print ("Recebendo dados .... ")
-        rxBuffer, nRx = com.getData(txLen)
+        rxBuffer, nRx = com.getData()
 
         # log
         print ("Lido              {} bytes ".format(nRx))

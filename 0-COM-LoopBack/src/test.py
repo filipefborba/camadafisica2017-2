@@ -17,8 +17,8 @@ import binascii
 from construct import *
 
 
-data = '/Users/fredcurti/Pictures/Arquivo Escaneado 1.jpeg'
-
+# dataPath = 'imgs/imageC.png'
+dataPath = '/Users/fredcurti/Pictures/Arquivo Escaneado 3.jpeg'
 
 class FileHandler(object):
     """ This class handles files to package and unpack them,
@@ -30,49 +30,35 @@ class FileHandler(object):
         self.filePath = dataPath
         self.data = open(dataPath,'rb')
         self.fileSize = os.path.getsize(dataPath)
-    
-        # self.fisica      = fisica(name)
+        self.headStruct = Struct(
+                    "start" / Int8ub,
+                    "size"  / Int16ub,
+                    "type" / Array(5,Byte),
+                    # "checksum" / Int16ub
+                    )        
 
-
-        #Construção do HEAD
-        # def pack(self):
-        #     self.buildHead(data)
-        #     self.buildEOF(data)
-            
-        
-        # def unpack(self):
-        #     """ Unpacks files and returns it
-        #     """
-        
 
     def buildHead(self):
         headSTART  = 0xFF
-        print(self.data.read())
         fileExtension = self.filePath.split('.')
         fileExtension = fileExtension[len(fileExtension) - 1]
-        print('file extension : ' + fileExtension)
-        md5 = self.generate_md5()
-        print ('md5 checksum : ' + md5)
-
+        
+        #Tipo de imagem
         extArray = self.generate_extArr(fileExtension)
 
-        headStruct = Struct(
-                            "start" / Int8ub,
-                            "size"  / Int16ub,
-                            "type" / Array(5,Byte)
-                            )                    
-        
-        head = headStruct.build(
+        #Checksum
+        md5 = self.generate_md5()
+
+        head = self.headStruct.build(
             dict(
                 start = headSTART,
                 size = self.fileSize,
                 type = extArray,
+                # checksum = md5
             )
         )
-
-        print(head)
-        print(headStruct.parse(head))
-        return(head)
+        print ('===== \nGENERATED HEAD:', head ,'LEN:', len(head))
+        return head
 
     def generate_md5(self):
         hash_md5 = hashlib.md5()
@@ -90,20 +76,52 @@ class FileHandler(object):
         if len(fileExt) != 4:
             arr.append(0)
 
-        print(arr)
         return arr
 
+    def buildEOP(self):
+        eop = b'borbafred'
+        print ('GENERATED EOP : ',binascii.hexlify(eop), 'LEN : ', len(binascii.hexlify(eop)),'\n=====')
+        return binascii.hexlify(eop)
 
-        # def buildEOF(self, dataLen):
-        #     eof = dataLen
-        #     eofStruct = Struct(
-        #                     "EOF" / Int8ub
-        #     )
-    
+    def buildPacket(self):
+        data = self.buildHead()
+        data += open(self.filePath, 'rb').read()
+        data += self.buildEOP()
+        return data
+
+    def decode(self,bincode):
+        output = {}
+        decoded = self.headStruct.parse(bincode)
+
+        for each in decoded.items():
+            output[each[0]] = each[1]
+        extLen = output['type'][0]
+        ext = ''
+        for i in range(extLen):
+            ext += chr(output['type'][i + 1])
+        output['type'] = ext
+
+        barr = bytearray(bincode)
+        filebarr = barr[8:len(barr) - 18]
+
+        print(
+        """
+        -> OBTAINED HEAD : {}
+        -> OBTAINED BODY : {} ...
+        -> EOF AT POSITION : {}
+        """
+        .format(output,filebarr[:50],len(barr) - 18))
+
+        outputdir = './test/jp.jpeg'
+        f = open(outputdir, 'wb')
+        f.write(bytes(filebarr))
+        print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
+
+fh = FileHandler(dataPath)
+fh.decode(fh.buildPacket())
 
 
-fh = FileHandler(data)
-fh.buildHead()
+
 
 
 
