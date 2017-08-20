@@ -17,8 +17,8 @@ import binascii
 from construct import *
 
 
-dataPath = 'imgs/imageC.png'
-
+# dataPath = 'imgs/imageC.png'
+dataPath = '/Users/fredcurti/Pictures/Arquivo Escaneado 3.jpeg'
 
 class FileHandler(object):
     """ This class handles files to package and unpack them,
@@ -30,6 +30,13 @@ class FileHandler(object):
         self.filePath = dataPath
         self.data = open(dataPath,'rb')
         self.fileSize = os.path.getsize(dataPath)
+        self.headStruct = Struct(
+                    "start" / Int8ub,
+                    "size"  / Int16ub,
+                    "type" / Array(5,Byte),
+                    # "checksum" / Int16ub
+                    )        
+
 
     def buildHead(self):
         headSTART  = 0xFF
@@ -42,14 +49,7 @@ class FileHandler(object):
         #Checksum
         md5 = self.generate_md5()
 
-        headStruct = Struct(
-                            "start" / Int8ub,
-                            "size"  / Int16ub,
-                            "type" / Array(5,Byte),
-                            # "checksum" / Int16ub
-                            )                    
-        
-        head = headStruct.build(
+        head = self.headStruct.build(
             dict(
                 start = headSTART,
                 size = self.fileSize,
@@ -57,8 +57,7 @@ class FileHandler(object):
                 # checksum = md5
             )
         )
-
-        print(head)
+        print ('===== \nGENERATED HEAD:', head ,'LEN:', len(head))
         return head
 
     def generate_md5(self):
@@ -77,24 +76,52 @@ class FileHandler(object):
         if len(fileExt) != 4:
             arr.append(0)
 
-        print(arr)
         return arr
 
     def buildEOP(self):
         eop = b'borbafred'
+        print ('GENERATED EOP : ',binascii.hexlify(eop), 'LEN : ', len(binascii.hexlify(eop)),'\n=====')
         return binascii.hexlify(eop)
 
-    def buildPacket(self, dataPath):
+    def buildPacket(self):
         data = self.buildHead()
-        data += open(dataPath, 'rb').read()
+        data += open(self.filePath, 'rb').read()
         data += self.buildEOP()
-        print(data)
         return data
-    
 
+    def decode(self,bincode):
+        output = {}
+        decoded = self.headStruct.parse(bincode)
+
+        for each in decoded.items():
+            output[each[0]] = each[1]
+        extLen = output['type'][0]
+        ext = ''
+        for i in range(extLen):
+            ext += chr(output['type'][i + 1])
+        output['type'] = ext
+
+        barr = bytearray(bincode)
+        filebarr = barr[8:len(barr) - 18]
+
+        print(
+        """
+        -> OBTAINED HEAD : {}
+        -> OBTAINED BODY : {} ...
+        -> EOF AT POSITION : {}
+        """
+        .format(output,filebarr[:50],len(barr) - 18))
+
+        outputdir = './test/jp.jpeg'
+        f = open(outputdir, 'wb')
+        f.write(bytes(barr))
+        print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
 
 fh = FileHandler(dataPath)
-fh.buildPacket(dataPath)
+fh.decode(fh.buildPacket())
+
+
+
 
 
 
