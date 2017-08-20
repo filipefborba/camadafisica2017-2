@@ -17,7 +17,7 @@ import binascii
 from construct import *
 
 
-data = '/Users/fredcurti/Pictures/Arquivo Escaneado 1.jpeg'
+dataPath = 'imgs/imageC.png'
 
 
 class FileHandler(object):
@@ -35,14 +35,18 @@ class FileHandler(object):
         headSTART  = 0xFF
         fileExtension = self.filePath.split('.')
         fileExtension = fileExtension[len(fileExtension) - 1]
-        # md5 = self.generate_md5()
-
+        
+        #Tipo de imagem
         extArray = self.generate_extArr(fileExtension)
+
+        #Checksum
+        md5 = self.generate_md5()
 
         headStruct = Struct(
                             "start" / Int8ub,
                             "size"  / Int16ub,
-                            "type" / Array(5,Byte)
+                            "type" / Array(5,Byte),
+                            # "checksum" / Int16ub
                             )                    
         
         head = headStruct.build(
@@ -50,19 +54,19 @@ class FileHandler(object):
                 start = headSTART,
                 size = self.fileSize,
                 type = extArray,
+                # checksum = md5
             )
         )
 
         print(head)
-        print(headStruct.parse(head))
-        return(head)
+        return head
 
-    # def generate_md5(self):
-    #     hash_md5 = hashlib.md5()
-    #     with open(self.filePath, "rb") as f:
-    #         for chunk in iter(lambda: f.read(4096), b""):
-    #             hash_md5.update(chunk)
-    #     return hash_md5.hexdigest()
+    def generate_md5(self):
+        hash_md5 = hashlib.md5()
+        with open(self.filePath, "rb") as f:
+            for chunk in iter(lambda: f.read(4096), b""):
+                hash_md5.update(chunk)
+        return hash_md5.hexdigest()
 
     def generate_extArr(self,fileExt):
         arr = []
@@ -76,12 +80,21 @@ class FileHandler(object):
         print(arr)
         return arr
 
-    def 
+    def buildEOP(self):
+        eop = b'borbafred'
+        return binascii.hexlify(eop)
+
+    def buildPacket(self, dataPath):
+        data = self.buildHead()
+        data += open(dataPath, 'rb').read()
+        data += self.buildEOP()
+        print(data)
+        return data
     
 
 
-fh = FileHandler(data)
-fh.buildHead()
+fh = FileHandler(dataPath)
+fh.buildPacket(dataPath)
 
 
 
