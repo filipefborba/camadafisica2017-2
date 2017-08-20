@@ -114,7 +114,7 @@ class FileHandler(object):
 
         outputdir = './test/jp.jpeg'
         f = open(outputdir, 'wb')
-        f.write(bytes(barr))
+        f.write(bytes(filebarr))
         print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
 
 fh = FileHandler(dataPath)
