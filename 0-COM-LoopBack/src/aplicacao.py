@@ -8,6 +8,7 @@
 ####################################################
 
 from enlace import *
+from test import *
 import time
 from loader import Screen
 from datetime import datetime
@@ -61,7 +62,7 @@ def main():
             # Transmite imagem
             now = datetime.now().microsecond
             print("Transmitindo .... {} bytes".format(txLen))
-            com.sendData(txBuffer)
+            com.sendData(FileHandler().buildPacket(imageR))
         
             # espera o fim da transmissão
             while(com.tx.getIsBussy()):

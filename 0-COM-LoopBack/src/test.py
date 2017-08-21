@@ -17,19 +17,17 @@ import binascii
 from construct import *
 
 
-# dataPath = 'imgs/imageC.png'
-dataPath = '/Users/fredcurti/Pictures/Arquivo Escaneado 3.jpeg'
+dataPath = 'imgs/imageC.png'
+# dataPath = '/Users/fredcurti/Pictures/Arquivo Escaneado 3.jpeg'
 
 class FileHandler(object):
     """ This class handles files to package and unpack them,
     adding necessary data for a successful file transfer
     """
-    def __init__(self,dataPath):
+    def __init__(self):
         """ Initializes the filehandler class
         """
-        self.filePath = dataPath
-        self.data = open(dataPath,'rb')
-        self.fileSize = os.path.getsize(dataPath)
+
         self.headStruct = Struct(
                     "start" / Int8ub,
                     "size"  / Int16ub,
@@ -83,7 +81,12 @@ class FileHandler(object):
         print ('GENERATED EOP : ',binascii.hexlify(eop), 'LEN : ', len(binascii.hexlify(eop)),'\n=====')
         return binascii.hexlify(eop)
 
-    def buildPacket(self):
+    def buildPacket(self,filePath):
+        self.filePath = filePath
+        self.data = open(self.filePath,'rb')
+        self.fileSize = os.path.getsize(self.filePath)
+
+
         data = self.buildHead()
         data += open(self.filePath, 'rb').read()
         data += self.buildEOP()
@@ -117,8 +120,10 @@ class FileHandler(object):
         f.write(bytes(filebarr))
         print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
 
-fh = FileHandler(dataPath)
-fh.decode(fh.buildPacket())
+fh = FileHandler()
+fh.decode(fh.buildPacket(dataPath))
+
+# fh.decode(fh.buildPacket())
 
 
 
