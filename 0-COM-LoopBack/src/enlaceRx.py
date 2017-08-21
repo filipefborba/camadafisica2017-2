@@ -24,6 +24,7 @@ class RX(object):
         """
         self.fisica      = fisica
         self.buffer      = bytes(bytearray())
+        self.packetFound = False
         self.threadStop  = False
         self.threadMutex = True
         self.READLEN     = 1024
@@ -36,8 +37,6 @@ class RX(object):
                 rxTemp, nRx = self.fisica.read(self.READLEN)
                 if (nRx > 0):
                     self.buffer += rxTemp
-                print("Recebendo dados...")
-                print(self.buffer)
                 time.sleep(0.001)
 
     def threadStart(self):
@@ -103,6 +102,40 @@ class RX(object):
             time.sleep(0.05)
 
         return(self.getBuffer(size))
+
+    # def getPacket(self):
+    #     self.clearBuffer()
+    #     while not self.packetFound:
+    #         self.threadPause()
+    #         packet = self.buffer
+    #         EOF = packet.find(b'626f72626166726564')
+    #         print(self.buffer)
+    #         if EOF != -1:
+    #             print('FOUND EOF : ', EOF)
+    #             self.packetFound = True
+    #             self.threadPause()
+    #         else:
+    #             time.sleep(0.05)
+    #             self.threadResume()
+
+
+    def getPacket(self):
+        self.clearBuffer()
+        while not self.packetFound:
+            # self.threadPause()
+            # print('BUFFER:{} ...'.format(self.buffer[:50]))
+            eop = self.buffer.find(b'626f72626166726564')
+            if eop != -1:
+                print('EOP ENCONTRADO:' , eop)
+                head = self.buffer.find(0xFF)
+                receivedbytes = self.buffer
+                receivedbytes = receivedbytes[head:eop + 18]
+                print('RECEIVED BYTES : ', receivedbytes)
+                self.packetFound = True
+                self.threadPause()
+                return receivedbytes
+            else:
+                time.sleep(0.025)
 
 
     def clearBuffer(self):

@@ -18,7 +18,7 @@ from datetime import datetime
 #   python -m serial.tools.list_ports
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
+serialName = "/dev/tty.usbmodem1421" # Mac    (variacao de)
 # serialName = "COM3"                  # Windows(variacao de)
 
 def main():
@@ -26,6 +26,7 @@ def main():
     com = enlace(serialName)
 
     # # Ativa comunicacao
+    
     com.enable()
 
     # Define a role selecionada na GUI
@@ -84,16 +85,20 @@ def main():
     elif role == 'server':
         #Tamanho em bytes do arquivo que está sendo recebido
         # txLen = 2076
+        fh = FileHandler()
+        com.rx.clearBuffer()
         
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
 
         # Faz a recepção dos dados
         print ("Recebendo dados .... ")
-        rxBuffer, nRx = com.getData()
+        rxBuffer = com.getData()
 
-        # log
-        print ("Lido              {} bytes ".format(nRx))
+        print('OBTAINED RX BUFFER', rxBuffer)
+
+        # # log
+        # print ("Lido              {} bytes ".format(nRx))
 
         #Começa a calcular o tempo de recepção
         now = datetime.now().microsecond
@@ -102,10 +107,11 @@ def main():
         print("-------------------------")
         print ("Salvando dados no arquivo :")
         print (" - {}".format(imageW))
-        f = open(imageW, 'wb')
-        f.write(rxBuffer)
-        # Fecha arquivo de imagem
-        f.close()
+        fh.decode(rxBuffer)
+        # f = open(imageW, 'wb')
+        # f.write(fh.decode(rxBuffer))
+        # # Fecha arquivo de imagem
+        # f.close()
 
         #Calcula o tempo de recepção
         finished = datetime.now().microsecond

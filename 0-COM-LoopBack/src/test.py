@@ -115,13 +115,13 @@ class FileHandler(object):
         """
         .format(output,filebarr[:50],len(barr) - 18))
 
-        outputdir = './test/jp.jpeg'
+        outputdir = './imgs/foi.png'
         f = open(outputdir, 'wb')
         f.write(bytes(filebarr))
         print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
 
-fh = FileHandler()
-fh.decode(fh.buildPacket(dataPath))
+# fh = FileHandler()
+# fh.decode(fh.buildPacket(dataPath))
 
 # fh.decode(fh.buildPacket())
 
