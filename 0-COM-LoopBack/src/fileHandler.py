@@ -31,7 +31,8 @@ class FileHandler(object):
         self.headStruct = Struct(
                     "start" / Int8ub,
                     "size"  / Int16ub,
-                    "type" / Array(5,Byte),
+                    "ext" / Array(5,Byte),
+                    "type" / Int16ub
                     # "checksum" / Int16ub
                     )        
 
@@ -51,11 +52,24 @@ class FileHandler(object):
             dict(
                 start = headSTART,
                 size = self.fileSize,
-                type = extArray,
+                ext = extArray,
+                type = "PAYLOAD".encode()
                 # checksum = md5
             )
         )
         print ('===== \nGENERATED HEAD:', head ,'LEN:', len(head))
+        return head
+
+    def buildCommandPacket(self, commandType):
+        head = self.headStruct.buid (
+            dict(
+                start = 0xFF,
+                size = 0,
+                ext = [0]*5,
+                type = commandType.upper()
+            )
+        )
+        print ('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))
         return head
 
     def generate_md5(self):
@@ -95,18 +109,17 @@ class FileHandler(object):
     def decode(self,bincode):
         output = {}
         decoded = self.headStruct.parse(bincode)
-
         for each in decoded.items():
             output[each[0]] = each[1]
-        extLen = output['type'][0]
+        extLen = output['ext'][0]
         ext = ''
         for i in range(extLen):
-            ext += chr(output['type'][i + 1])
-        output['type'] = ext
-
+            ext += chr(output['ext'][i + 1])
         barr = bytearray(bincode)
         filebarr = barr[8:len(barr) - 18]
 
+        output['ext'] = ext
+        output['payload'] = filebarr
         print(
         """
         -> OBTAINED HEAD : {}
@@ -114,11 +127,10 @@ class FileHandler(object):
         -> EOF AT POSITION : {}
         """
         .format(output,filebarr[:50],len(barr) - 18))
+        return output
 
-        outputdir = './imgs/foi.png'
-        f = open(outputdir, 'wb')
-        f.write(bytes(filebarr))
-        print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputdir )
+
+        
 
 # fh = FileHandler()
 # fh.decode(fh.buildPacket(dataPath))

@@ -8,7 +8,7 @@
 ####################################################
 
 from enlace import *
-from fileHandler import *
+from filehandler import *
 import time
 from loader import Screen
 from datetime import datetime
@@ -109,14 +109,16 @@ def main():
             now = datetime.now().microsecond
 
             # Salva imagem recebida em arquivo
+
+            received = fh.decode(rxBuffer)
+            print (received)
+            f = open(imageW, 'wb')
+
             print("-------------------------")
             print ("Salvando dados no arquivo :")
             print (" - {}".format(imageW))
-            fh.decode(rxBuffer)
-            # f = open(imageW, 'wb')
-            # f.write(fh.decode(rxBuffer))
-            # # Fecha arquivo de imagem
-            # f.close()
+            f.write(received['payload'])
+            print('[INFO]: Arquivo escrito com sucesso no diretório ' + imageW )
 
             #Calcula o tempo de recepção
             finished = datetime.now().microsecond
