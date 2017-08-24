@@ -103,22 +103,6 @@ class RX(object):
 
         return(self.getBuffer(size))
 
-    # def getPacket(self):
-    #     self.clearBuffer()
-    #     while not self.packetFound:
-    #         self.threadPause()
-    #         packet = self.buffer
-    #         EOF = packet.find(b'626f72626166726564')
-    #         print(self.buffer)
-    #         if EOF != -1:
-    #             print('FOUND EOF : ', EOF)
-    #             self.packetFound = True
-    #             self.threadPause()
-    #         else:
-    #             time.sleep(0.05)
-    #             self.threadResume()
-
-
     def getPacket(self):
         self.clearBuffer()        
         while not self.packetFound:

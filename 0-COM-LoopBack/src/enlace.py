@@ -55,22 +55,11 @@ class enlace(object):
         """
         self.tx.sendBuffer(data)
 
-    # def getData(self, size):
-    #     """ Get n data over the enlace interface
-    #     Return the byte array and the size of the buffer
-    #     """
-    #     data = self.rx.getNData(size)
-    #     self.rx.getPacket()
-
-    #     return(data, len(data))
-
     def getData(self):
         """ Get n data over the enlace interface
         Return the byte array and the size of the buffer
         """
         return self.rx.getPacket()
-
-        # return(data, len(data))
 
 
     

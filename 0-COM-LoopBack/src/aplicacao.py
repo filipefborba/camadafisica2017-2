@@ -18,15 +18,14 @@ from datetime import datetime
 #   python -m serial.tools.list_ports
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-# serialName = "COM3"                  # Windows(variacao de)
+# serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
+serialName = "COM3"                  # Windows(variacao de)
 
 def main():
     # Inicializa enlace
     com = enlace(serialName)
 
-    # # Ativa comunicacao
-    
+    # Ativa comunicacao
     com.enable()
 
     # Define a role selecionada na GUI
@@ -39,13 +38,8 @@ def main():
         screen.updateText('Insira o arquivo abaixo')
         if screen.getImageDir() != None:
             imageR = screen.getImageDir()
-            print(imageR)
-            # txBuffer = open(imageR, 'rb').read()
-            # txlalala  = hex(1312321321)
-            # txlalala += txBuffer
-            # print(txlalala)
-        
-            #print(txBuffer)
+            print("Endereço da Imagem Selecionada: " + imageR)
+
             # Log
             print("-------------------------")
             print("Comunicação inicializada")
@@ -82,31 +76,30 @@ def main():
 
 
     elif role == 'server':
+        #Variável indicando que o servidor está pronto para receber arquivos
         serverReady = True
-        #Tamanho em bytes do arquivo que está sendo recebido
-        # txLen = 2076
+
+        #Objeto da classe que cuida dos pacotes
         fh = FileHandler()
+
+        #Remove resquícios de comunicações antigas
         com.rx.clearBuffer()
-        
-        # Endereco da imagem a ser salva
-        imageW = "./imgs/recebida.png"
 
         while serverReady:
-            # Faz a recepção dos dados
+            #Mostra na tela o seguinte texto
             screen.updateText('Aguardando dados...')
-            print ("Aguardando dados .... ")
+            print("Aguardando dados .... ")
+
+            #Faz a recepção dos dados
             rxBuffer = com.getData()
 
+            #Mostra na tela o seguinte texto
             screen.updateText('ARQUIVO RECEBIDO!')
-
-            # # log
-            # print ("Lido              {} bytes ".format(nRx))
 
             #Começa a calcular o tempo de recepção
             now = datetime.now().microsecond
 
             # Salva imagem recebida em arquivo
-
             received = fh.decode(rxBuffer)
             print('---------- RECEIVED DATA ----------')
             for i in received.keys():
@@ -115,7 +108,13 @@ def main():
                 else:
                     print(' -> {} : {} '.format(i,received[i]))
             
-        
+            #Tamanho do arquivo lido
+            print ("Lido              {} bytes ".format(received['size']))
+            
+            # Endereco da imagem a ser salva
+            imageW = "./recebidos/" + received['name'] + received['ext']
+
+            #Gravação dos dados
             f = open(imageW, 'wb')
 
             print("-------------------------")
