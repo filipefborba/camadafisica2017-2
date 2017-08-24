@@ -39,8 +39,9 @@ class FileHandler(object):
 
         #Tipo de Arquivo
         fileExtension = self.filePath.split('.')
+        fileExtension = fileExtension[len(fileExtension) - 1]
         fileName = fileExtension[0]
-        fileExtension = fileExtension[1]
+        fileName = fileExtension.split("\\")[len(fileName) - 1]
 
         #Checksum
         #md5 = self.generate_md5()
