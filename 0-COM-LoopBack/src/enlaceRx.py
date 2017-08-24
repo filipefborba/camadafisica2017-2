@@ -131,7 +131,7 @@ class RX(object):
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
                 receivedbytes = receivedbytes[head:eop + 18]
-                print('RECEIVED BYTES : ', receivedbytes)
+                # print('RECEIVED BYTES : ', receivedbytes)
                 # self.threadPause()
                 self.packetFound = False
                 return receivedbytes

@@ -99,9 +99,6 @@ def main():
 
             screen.updateText('ARQUIVO RECEBIDO!')
 
-
-            print('OBTAINED RX BUFFER', rxBuffer)
-
             # # log
             # print ("Lido              {} bytes ".format(nRx))
 
@@ -111,7 +108,14 @@ def main():
             # Salva imagem recebida em arquivo
 
             received = fh.decode(rxBuffer)
-            print (received)
+            print('---------- RECEIVED DATA ----------')
+            for i in received.keys():
+                if i == 'payload':
+                    print(' -> payload : {} ... '.format(received[i][:50]))
+                else:
+                    print(' -> {} : {} '.format(i,received[i]))
+            
+        
             f = open(imageW, 'wb')
 
             print("-------------------------")

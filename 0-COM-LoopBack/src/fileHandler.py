@@ -32,7 +32,7 @@ class FileHandler(object):
                     "start" / Int8ub,
                     "size"  / Int16ub,
                     "ext" / Array(5,Byte),
-                    "type" / Int16ub
+                    "type" / String(7, encoding="utf-8")
                     # "checksum" / Int16ub
                     )        
 
@@ -41,6 +41,7 @@ class FileHandler(object):
         headSTART  = 0xFF
         fileExtension = self.filePath.split('.')
         fileExtension = fileExtension[len(fileExtension) - 1]
+        
         
         #Tipo de imagem
         extArray = self.generate_extArr(fileExtension)
@@ -53,7 +54,7 @@ class FileHandler(object):
                 start = headSTART,
                 size = self.fileSize,
                 ext = extArray,
-                type = "PAYLOAD".encode()
+                type = String(7, encoding="utf-8").build("PAYLOAD")
                 # checksum = md5
             )
         )
@@ -61,15 +62,14 @@ class FileHandler(object):
         return head
 
     def buildCommandPacket(self, commandType):
-        head = self.headStruct.buid (
+        head = self.headStruct.build (
             dict(
                 start = 0xFF,
                 size = 0,
                 ext = [0]*5,
-                type = commandType.upper()
-            )
-        )
-        print ('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))
+                type = String(7, encoding="utf-8").build(commandType.upper())
+            ))
+        print('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))
         return head
 
     def generate_md5(self):
@@ -116,17 +116,17 @@ class FileHandler(object):
         for i in range(extLen):
             ext += chr(output['ext'][i + 1])
         barr = bytearray(bincode)
-        filebarr = barr[8:len(barr) - 18]
+        filebarr = barr[15:len(barr) - 18]
 
         output['ext'] = ext
         output['payload'] = filebarr
-        print(
-        """
-        -> OBTAINED HEAD : {}
-        -> OBTAINED BODY : {} ...
-        -> EOF AT POSITION : {}
-        """
-        .format(output,filebarr[:50],len(barr) - 18))
+        # print(
+        # """
+        # -> OBTAINED HEAD : {}
+        # -> OBTAINED BODY : {} ...
+        # -> EOF AT POSITION : {}
+        # """
+        # .format(output,filebarr[:50],len(barr) - 18))
         return output
 
 
