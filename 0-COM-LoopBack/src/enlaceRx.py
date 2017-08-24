@@ -120,19 +120,20 @@ class RX(object):
 
 
     def getPacket(self):
-        self.clearBuffer()
+        self.clearBuffer()        
         while not self.packetFound:
             # self.threadPause()
             # print('BUFFER:{} ...'.format(self.buffer[:50]))
             eop = self.buffer.find(b'626f72626166726564')
             if eop != -1:
+                self.packetFound = True
                 print('EOP ENCONTRADO:' , eop)
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
                 receivedbytes = receivedbytes[head:eop + 18]
                 print('RECEIVED BYTES : ', receivedbytes)
-                self.packetFound = True
-                self.threadPause()
+                # self.threadPause()
+                self.packetFound = False
                 return receivedbytes
             else:
                 time.sleep(0.025)

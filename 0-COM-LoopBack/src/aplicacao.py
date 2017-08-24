@@ -8,7 +8,7 @@
 ####################################################
 
 from enlace import *
-from test import *
+from fileHandler import *
 import time
 from loader import Screen
 from datetime import datetime
@@ -18,7 +18,7 @@ from datetime import datetime
 #   python -m serial.tools.list_ports
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
-serialName = "/dev/tty.usbmodem1421" # Mac    (variacao de)
+serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
 # serialName = "COM3"                  # Windows(variacao de)
 
 def main():
@@ -58,7 +58,6 @@ def main():
             print("-------------------------")
             txBuffer = open(imageR, 'rb').read()
             txLen    = len(txBuffer)
-            print(txLen)
 
             # Transmite imagem
             now = datetime.now().microsecond
@@ -83,6 +82,7 @@ def main():
 
 
     elif role == 'server':
+        serverReady = True
         #Tamanho em bytes do arquivo que está sendo recebido
         # txLen = 2076
         fh = FileHandler()
@@ -91,37 +91,43 @@ def main():
         # Endereco da imagem a ser salva
         imageW = "./imgs/recebida.png"
 
-        # Faz a recepção dos dados
-        print ("Recebendo dados .... ")
-        rxBuffer = com.getData()
+        while serverReady:
+            # Faz a recepção dos dados
+            screen.updateText('Aguardando dados...')
+            print ("Aguardando dados .... ")
+            rxBuffer = com.getData()
 
-        print('OBTAINED RX BUFFER', rxBuffer)
+            screen.updateText('ARQUIVO RECEBIDO!')
 
-        # # log
-        # print ("Lido              {} bytes ".format(nRx))
 
-        #Começa a calcular o tempo de recepção
-        now = datetime.now().microsecond
+            print('OBTAINED RX BUFFER', rxBuffer)
 
-        # Salva imagem recebida em arquivo
-        print("-------------------------")
-        print ("Salvando dados no arquivo :")
-        print (" - {}".format(imageW))
-        fh.decode(rxBuffer)
-        # f = open(imageW, 'wb')
-        # f.write(fh.decode(rxBuffer))
-        # # Fecha arquivo de imagem
-        # f.close()
+            # # log
+            # print ("Lido              {} bytes ".format(nRx))
 
-        #Calcula o tempo de recepção
-        finished = datetime.now().microsecond
-        delta = now - finished
-        print ("Processo finalizado em ",delta," ms")
+            #Começa a calcular o tempo de recepção
+            now = datetime.now().microsecond
 
-        # Encerra comunicação
-        print("-------------------------")
-        print("Comunicação encerrada")
-        print("-------------------------")
+            # Salva imagem recebida em arquivo
+            print("-------------------------")
+            print ("Salvando dados no arquivo :")
+            print (" - {}".format(imageW))
+            fh.decode(rxBuffer)
+            # f = open(imageW, 'wb')
+            # f.write(fh.decode(rxBuffer))
+            # # Fecha arquivo de imagem
+            # f.close()
+
+            #Calcula o tempo de recepção
+            finished = datetime.now().microsecond
+            delta = now - finished
+            print ("Processo finalizado em ",delta," ms")
+            time.sleep(2)
+
+            # Encerra comunicação
+            print("-------------------------")
+            print("Comunicação encerrada")
+            print("-------------------------")
 
     else:
         print('Ocorreu um erro...')

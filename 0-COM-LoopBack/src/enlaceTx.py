@@ -35,7 +35,7 @@ class TX(object):
         while not self.threadStop:
             if(self.threadMutex):
                 print("Enviando dados...")
-                print(self.buffer)
+                # print(self.buffer)
                 self.transLen    = self.fisica.write(self.buffer)
                 self.threadMutex = False
 
@@ -88,7 +88,6 @@ class TX(object):
         """ Return true if a transmission is ongoing
         """
         return(self.threadMutex)
-
 
     ################################
     # Application  interface       #
