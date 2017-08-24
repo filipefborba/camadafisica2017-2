@@ -38,10 +38,12 @@ class FileHandler(object):
         headSTART  = 0xFF
 
         #Tipo de Arquivo
-        fileExtension = self.filePath.split('.')
-        fileExtension = fileExtension[len(fileExtension) - 1]
-        fileName = fileExtension[0]
-        fileName = fileExtension.split("\\")[len(fileName) - 1]
+        file = self.filePath.split('/')
+        file = file[len(file) - 1]
+        file = file.split(".")
+        fileName = file[0]
+        fileExtension = file[1]
+        
 
         #Checksum
         #md5 = self.generate_md5()
