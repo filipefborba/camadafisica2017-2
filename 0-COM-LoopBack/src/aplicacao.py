@@ -12,6 +12,7 @@ from filehandler import *
 import time
 from loader import Screen
 from datetime import datetime
+import os
 
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
@@ -19,7 +20,12 @@ from datetime import datetime
 
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
 # serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
-serialName = "COM3"                  # Windows(variacao de)
+# serialName = "COM3"                  # Windows(variacao de)
+
+if os.name == 'posix':
+    serialName = "/dev/tty.usbmodem1411"
+else:
+    serialName = "COM3"     
 
 def main():
     # Inicializa enlace
@@ -46,6 +52,20 @@ def main():
             print("  porta : {}".format(com.fisica.name))
             print("-------------------------")
 
+            #Aguardando Handshake com o servidor
+            print("Enviando SYN")
+            inSync = False
+            while not inSync:
+                com.sendData(buildCommandPacket(self, "SYN"))
+                print("Aguardando SYN+ACK")
+                handshake = fh.decode(com.getData())
+                if handshake["type"] == "SYN+ACK":
+                    com.sendData(buildCommandPacket(self, "ACK")
+                    inSync = True
+                else:
+                    time.sleep(0.25)
+                    com.sendData(buildCommandPacket(self,"SYN"))
+
             # Carrega imagem
             print ("Carregando imagem para transmissão :")
             print (" - {}".format(imageR))
@@ -57,7 +77,7 @@ def main():
             now = datetime.now().microsecond
             print("Transmitindo .... {} bytes".format(txLen))
             com.sendData(FileHandler().buildPacket(imageR))
-        
+
             # espera o fim da transmissão
             while(com.tx.getIsBussy()):
                 pass
@@ -70,6 +90,7 @@ def main():
             delta = now - finished
             print ("Transmitido       {} bytes ".format(txSize))
             print ("Processo finalizado em ",delta," ms")
+            inSync = False
             com.disable()
         else:
             print('Nenhuma imagem selecionada')
@@ -85,13 +106,16 @@ def main():
         #Remove resquícios de comunicações antigas
         com.rx.clearBuffer()
 
+        # fh.decode(fh.buildPacket('./imgs/imageC.png'))
+
         while serverReady:
             #Mostra na tela o seguinte texto
             screen.updateText('Aguardando dados...')
             print("Aguardando dados .... ")
 
             #Faz a recepção dos dados
-            rxBuffer = com.getData()
+            # rxBuffer = com.getData()
+
 
             #Mostra na tela o seguinte texto
             screen.updateText('ARQUIVO RECEBIDO!')
@@ -100,8 +124,18 @@ def main():
             now = datetime.now().microsecond
 
             # Salva imagem recebida em arquivo
-            received = fh.decode(rxBuffer)
+            received = fh.decode(com.getData())
             print('---------- RECEIVED DATA ----------')
+            inSync = False
+            while not inSync:
+                if received["type"] == "SYN":
+                    com.sendData(buildCommandPacket(self, "SYN+ACK"))
+                elif received["type"] == "ACK":
+                    inSync = True
+                else:
+                    com.sendData(buildCommandPacket(self,"SYN+NACK"))
+
+
             for i in received.keys():
                 if i == 'payload':
                     print(' -> payload : {} ... '.format(received[i][:50]))
@@ -110,19 +144,25 @@ def main():
             
             #Tamanho do arquivo lido
             print ("Lido              {} bytes ".format(received['size']))
-            
+        
             # Endereco da imagem a ser salva
-            imageW = "./recebidos/" + received['name'] + received['ext']
+            outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
             #Gravação dos dados
-            f = open(imageW, 'wb')
+            #outputDir = './imgs/foi.png'
 
-            print("-------------------------")
-            print ("Salvando dados no arquivo :")
-            print (" - {}".format(imageW))
-            f.write(received['payload'])
-            print('[INFO]: Arquivo escrito com sucesso no diretório ' + imageW )
+            print("""
+            -------------------------
+            Salvando dados no arquivo : - {}
+            FILE LEN : {}
+            """.format(outputDir,len(received['payload'])))
 
+            #outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
+            # print( 'NAME JOINED ' + outputDir)
+            # f = open(outputDir, 'wb')
+            # f.write(bytes(received['payload']))
+            # print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputDir )
+            # print()
             #Calcula o tempo de recepção
             finished = datetime.now().microsecond
             delta = now - finished
@@ -133,6 +173,7 @@ def main():
             print("-------------------------")
             print("Comunicação encerrada")
             print("-------------------------")
+            inSync = False
 
     else:
         print('Ocorreu um erro...')

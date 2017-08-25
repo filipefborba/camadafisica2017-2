@@ -107,14 +107,21 @@ class FileHandler(object):
         for each in decoded.items():
             output[each[0]] = each[1]
         extLen = output['ext'][0]
-        ext = ''
-        for i in range(extLen):
-            ext += chr(output['ext'][i + 1])
+        # ext = ''
+        # for i in range(extLen):
+        #     ext += chr(output['ext'][i + 1])
         barr = bytearray(bincode)
-        filebarr = barr[15:len(barr) - 18]
+        filebarr = barr[20:len(barr) - 18]
 
-        output['ext'] = ext
+        # output['ext'] = ext
         output['payload'] = filebarr
+        # print('[Filebarr] : {}'.format(filebarr))
+
+        outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
+        f = open(outputDir, 'wb')
+        f.write(bytes(filebarr))
+        print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputDir )
+
         # print(
         # """
         # -> OBTAINED HEAD : {}
@@ -122,6 +129,10 @@ class FileHandler(object):
         # -> EOF AT POSITION : {}
         # """
         # .format(output,filebarr[:50],len(barr) - 18))
+        #outputdir = './imgs/foi.png'
+        
+        
+
         return output
 
 
