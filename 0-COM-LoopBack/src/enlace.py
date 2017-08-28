@@ -32,6 +32,7 @@ class enlace(object):
         self.tx          = TX(self.fisica)
         self.connected   = False
         self.fh          = FileHandler()
+        self.label       = "[ENLACE]"
 
     def enable(self):
         """ Enable reception and transmission
@@ -49,37 +50,40 @@ class enlace(object):
         self.fisica.close()
 
     def conecta(self):
-        print("Enviando SYN")
+        print(self.label, "Iniciando Handshake como Cliente")
+        print(FileHandler().buildCommandPacket("SYN"))
         inSync = False
         while not inSync:
-            received = self.getData()
+            print("Enviando SYN...")
             self.sendData(FileHandler().buildCommandPacket("SYN"))
-            print("SENT SYN")
-            print("WAITING FOR SYN+ACK")
+            print("SYN Enviado...")
+            print("Esperando pelo SYN+ACK..")
             handshake = self.fh.decode(self.getData())
             if handshake["type"] == "SYN+ACK":
-                print("RECEIVED SYN+ACK")
+                print("SYN+ACK recebido...")
                 self.sendData(FileHandler().buildCommandPacket("ACK"))
-                print("SENT ACK")
+                print("Enviado ACK de Client...")
                 inSync = True
             else:
-                received = self.fh.decode(self.getData())
                 time.sleep(0.25)
+                print("Reenviando SYN após 0.25s ...")
                 self.sendData(FileHandler().buildCommandPacket("SYN"))
     
     def bind(self):
+        print(self.label, "Iniciando Handshake como Servidor")
         inSync = False
         while not inSync:
             received = self.getData()
             if received["type"] == "SYN":
-                print("RECEIVED SYN")
+                print("SYN recebido...")
                 self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
-                print("SENT SYN+ACK")
+                print("SYN+ACK enviado...")
             elif received["type"] == "ACK":
-                print("RECEIVED ACK BACK")
+                print("ACK de confirmação recebido...")
                 inSync = True
             else:
                 self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
+                print("SYN+NACK enviado. Ocorreu um erro...")
 
 
     ################################

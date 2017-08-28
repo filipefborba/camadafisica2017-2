@@ -53,7 +53,10 @@ def main():
             print("-------------------------")
 
             #Aguardando Handshake com o servidor
-            
+            com.conecta()
+
+            print("Handshake efetuado!")
+            time.sleep(3)
 
             # Carrega imagem
             print ("Carregando imagem para transmissão :")
@@ -61,9 +64,6 @@ def main():
             print("-------------------------")
             txBuffer = open(imageR, 'rb').read()
             txLen    = len(txBuffer)
-
-            # conectando
-            com.conecta()
 
             # Transmite imagem
             now = datetime.now().microsecond
