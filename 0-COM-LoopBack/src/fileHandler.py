@@ -30,7 +30,7 @@ class FileHandler(object):
                     "ext" / String(4, encoding="utf-8"),
                     "type" / String(7, encoding="utf-8")
                     # "checksum" / Int16ub
-                    )        
+                    )
 
     #Constroi o HEAD do Payload
     def buildHead(self):
@@ -54,7 +54,7 @@ class FileHandler(object):
                 start = headSTART,
                 size = self.fileSize,
                 filename = String(6, encoding="utf-8").build(fileName),
-                ext = String(7, encoding="utf-8").build(fileExtension),
+                ext = String(4, encoding="utf-8").build(fileExtension),
                 type = String(7, encoding="utf-8").build("PAYLOAD")
                 # checksum = md5
             )
@@ -67,9 +67,9 @@ class FileHandler(object):
         head = self.headStruct.build (
             dict(
                 start = 0xFF,
-                size = 0,
-                filename = 0,
-                ext = 0,
+                size = 0x00,
+                filename = String(6, encoding="utf-8").build("NULL"),
+                ext = String(4, encoding="utf-8").build("NULL"),
                 type = String(7, encoding="utf-8").build(commandType.upper())
             ))
         print('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))

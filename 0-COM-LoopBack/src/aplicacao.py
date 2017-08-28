@@ -23,7 +23,7 @@ import os
 # serialName = "COM3"                  # Windows(variacao de)
 
 if os.name == 'posix':
-    serialName = "/dev/tty.usbmodem1411"
+    serialName = "/dev/tty.usbmodem1421"
 else:
     serialName = "COM3"     
 
@@ -102,40 +102,33 @@ def main():
 
         while serverReady:
             #Mostra na tela o seguinte texto
-            screen.updateText('Aguardando dados...')
+            screen.updateText('Aguardando conexão...')
             print("Aguardando dados .... ")
 
             #Faz a recepção dos dados
             # rxBuffer = com.getData()
 
-
-            #Mostra na tela o seguinte texto
-            screen.updateText('ARQUIVO RECEBIDO!')
+            com.bind()
+            screen.updateText('Handshake estabelecido!')
 
             #Começa a calcular o tempo de recepção
             now = datetime.now().microsecond
-
-            com.bind()
-
+            
             # Salva imagem recebida em arquivo
             received = fh.decode(com.getData())
+            outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
+
             print('---------- RECEIVED DATA ----------')
            
             for i in received.keys():
                 if i == 'payload':
-                    print(' -> payload : {} ... '.format(received[i][:50]))
+                    print(' -> payload : {} ... '.format(received[i][:15]))
                 else:
                     print(' -> {} : {} '.format(i,received[i]))
             
             #Tamanho do arquivo lido
-            print ("Lido              {} bytes ".format(received['size']))
-        
-            # Endereco da imagem a ser salva
-            outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
-
-            #Gravação dos dados
-            #outputDir = './imgs/foi.png'
-
+            print ("Lido {} bytes ".format(received['size']))
+    
             print("""
             -------------------------
             Salvando dados no arquivo : - {}
@@ -154,11 +147,7 @@ def main():
             print ("Processo finalizado em ",delta," ms")
             time.sleep(2)
 
-            # Encerra comunicação
-            print("-------------------------")
-            print("Comunicação encerrada")
-            print("-------------------------")
-            inSync = False
+            print("---------------------------- \n [INFO] Servidor pronto")
 
     else:
         print('Ocorreu um erro...')

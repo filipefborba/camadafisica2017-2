@@ -32,6 +32,7 @@ class enlace(object):
         self.tx          = TX(self.fisica)
         self.connected   = False
         self.fh          = FileHandler()
+        self.label       = '[ENLACE]'
 
     def enable(self):
         """ Enable reception and transmission
@@ -70,13 +71,15 @@ class enlace(object):
     def bind(self):
         inSync = False
         while not inSync:
-            received = self.getData()
+            print(self.label,'Waiting for client to send command')
+            received = self.fh.decode(self.getData())
+            print(self.label,'Obtained data = {}'.format(received))
             if received["type"] == "SYN":
-                print("RECEIVED SYN")
+                print(self.label,"RECEIVED SYN")
                 self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
-                print("SENT SYN+ACK")
+                print(self.label,"SENT SYN+ACK")
             elif received["type"] == "ACK":
-                print("RECEIVED ACK BACK")
+                print(self.label,"RECEIVED ACK BACK")
                 inSync = True
             else:
                 self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
