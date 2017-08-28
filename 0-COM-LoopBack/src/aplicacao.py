@@ -56,15 +56,18 @@ def main():
             print("Enviando SYN")
             inSync = False
             while not inSync:
-                com.sendData(buildCommandPacket(self, "SYN"))
-                print("Aguardando SYN+ACK")
+                com.sendData(FileHandler().buildCommandPacket("SYN"))
+                print("SENT SYN")
+                print("WAITING FOR SYN+ACK")
                 handshake = fh.decode(com.getData())
                 if handshake["type"] == "SYN+ACK":
-                    com.sendData(buildCommandPacket(self, "ACK")
+                    print("RECEIVED SYN+ACK")
+                    com.sendData(FileHandler().buildCommandPacket("ACK"))
+                    print("SENT ACK")
                     inSync = True
                 else:
                     time.sleep(0.25)
-                    com.sendData(buildCommandPacket(self,"SYN"))
+                    com.sendData(FileHandler().buildCommandPacket("SYN"))
 
             # Carrega imagem
             print ("Carregando imagem para transmissão :")
@@ -129,11 +132,14 @@ def main():
             inSync = False
             while not inSync:
                 if received["type"] == "SYN":
-                    com.sendData(buildCommandPacket(self, "SYN+ACK"))
+                    print("RECEIVED SYN")
+                    com.sendData(fh.buildCommandPacket("SYN+ACK"))
+                    print("SENT SYN+ACK")
                 elif received["type"] == "ACK":
+                    print("RECEIVED ACK BACK")
                     inSync = True
                 else:
-                    com.sendData(buildCommandPacket(self,"SYN+NACK"))
+                    com.sendData(fh.buildCommandPacket("SYN+NACK"))
 
 
             for i in received.keys():
