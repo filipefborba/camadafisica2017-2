@@ -53,21 +53,7 @@ def main():
             print("-------------------------")
 
             #Aguardando Handshake com o servidor
-            print("Enviando SYN")
-            inSync = False
-            while not inSync:
-                com.sendData(FileHandler().buildCommandPacket("SYN"))
-                print("SENT SYN")
-                print("WAITING FOR SYN+ACK")
-                handshake = fh.decode(com.getData())
-                if handshake["type"] == "SYN+ACK":
-                    print("RECEIVED SYN+ACK")
-                    com.sendData(FileHandler().buildCommandPacket("ACK"))
-                    print("SENT ACK")
-                    inSync = True
-                else:
-                    time.sleep(0.25)
-                    com.sendData(FileHandler().buildCommandPacket("SYN"))
+            
 
             # Carrega imagem
             print ("Carregando imagem para transmissão :")
@@ -75,6 +61,9 @@ def main():
             print("-------------------------")
             txBuffer = open(imageR, 'rb').read()
             txLen    = len(txBuffer)
+
+            # conectando
+            com.conecta()
 
             # Transmite imagem
             now = datetime.now().microsecond
@@ -126,22 +115,12 @@ def main():
             #Começa a calcular o tempo de recepção
             now = datetime.now().microsecond
 
+            com.bind()
+
             # Salva imagem recebida em arquivo
             received = fh.decode(com.getData())
             print('---------- RECEIVED DATA ----------')
-            inSync = False
-            while not inSync:
-                if received["type"] == "SYN":
-                    print("RECEIVED SYN")
-                    com.sendData(fh.buildCommandPacket("SYN+ACK"))
-                    print("SENT SYN+ACK")
-                elif received["type"] == "ACK":
-                    print("RECEIVED ACK BACK")
-                    inSync = True
-                else:
-                    com.sendData(fh.buildCommandPacket("SYN+NACK"))
-
-
+           
             for i in received.keys():
                 if i == 'payload':
                     print(' -> payload : {} ... '.format(received[i][:50]))

@@ -12,7 +12,7 @@ import time
 
 # Construct Struct
 from construct import *
-
+from filehandler import FileHandler
 # Interface Física
 from interfaceFisica import fisica
 
@@ -31,6 +31,7 @@ class enlace(object):
         self.rx          = RX(self.fisica)
         self.tx          = TX(self.fisica)
         self.connected   = False
+        self.fh          = FileHandler()
 
     def enable(self):
         """ Enable reception and transmission
@@ -46,6 +47,40 @@ class enlace(object):
         self.tx.threadKill()
         time.sleep(1)
         self.fisica.close()
+
+    def conecta(self):
+        print("Enviando SYN")
+        inSync = False
+        while not inSync:
+            received = self.getData()
+            self.sendData(FileHandler().buildCommandPacket("SYN"))
+            print("SENT SYN")
+            print("WAITING FOR SYN+ACK")
+            handshake = self.fh.decode(self.getData())
+            if handshake["type"] == "SYN+ACK":
+                print("RECEIVED SYN+ACK")
+                self.sendData(FileHandler().buildCommandPacket("ACK"))
+                print("SENT ACK")
+                inSync = True
+            else:
+                received = self.fh.decode(self.getData())
+                time.sleep(0.25)
+                self.sendData(FileHandler().buildCommandPacket("SYN"))
+    
+    def bind(self):
+        inSync = False
+        while not inSync:
+            received = self.getData()
+            if received["type"] == "SYN":
+                print("RECEIVED SYN")
+                self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
+                print("SENT SYN+ACK")
+            elif received["type"] == "ACK":
+                print("RECEIVED ACK BACK")
+                inSync = True
+            else:
+                self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
+
 
     ################################
     # Application  interface       #

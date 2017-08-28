@@ -73,7 +73,7 @@ class FileHandler(object):
                 type = String(7, encoding="utf-8").build(commandType.upper())
             ))
         print('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))
-        return head
+        return head + self.buildEOP()
 
     #Gera o hash do Checksum
     # def generate_md5(self):
@@ -117,10 +117,11 @@ class FileHandler(object):
         output['payload'] = filebarr
         # print('[Filebarr] : {}'.format(filebarr))
 
-        outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
-        f = open(outputDir, 'wb')
-        f.write(bytes(filebarr))
-        print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputDir )
+        if output['type'] == "PAYLOAD":
+            outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
+            f = open(outputDir, 'wb')
+            f.write(bytes(filebarr))
+            print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputDir )
 
         # print(
         # """
@@ -130,10 +131,9 @@ class FileHandler(object):
         # """
         # .format(output,filebarr[:50],len(barr) - 18))
         #outputdir = './imgs/foi.png'
-        
-        
-
         return output
+
+
 
 
         
