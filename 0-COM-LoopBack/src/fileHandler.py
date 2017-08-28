@@ -100,7 +100,7 @@ class FileHandler(object):
     #Realiza o desempacotamento
     def decode(self,bincode):
 
-        if decode == False:
+        if bincode == False:
             return 'TIMEOUT'
 
         output = {}

@@ -69,6 +69,8 @@ class enlace(object):
                     inSync = True
             else:
                 print(self.label,'Tempo para handshake expirou!')
+                return handshake
+                break
 
             #  FIX ----------------------------------------------------
             # else:
@@ -85,7 +87,7 @@ class enlace(object):
         while not inSync:
             print(self.label, 'Aguardando pedidos SYN...')
             received = self.fh.decode(self.getData())
-            if received != 'TIMEOUT':
+            try:
                 print(self.label, 'Obtido {}'.format(received['type']))
                 if received["type"] == "SYN":
                     self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
@@ -96,8 +98,8 @@ class enlace(object):
                 else:
                     print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
                     self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
-            else:
-                print(self.label,'Tempo de handshake expirou')
+            except:
+                pass
 
     ################################
     # Application  interface       #

@@ -13,7 +13,7 @@ import time
 from loader import Screen
 from datetime import datetime
 import os
-import threading
+import threading 
 
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
@@ -44,6 +44,7 @@ def main():
 
     # Programa para o cliente
     if role == 'client':
+        com.rx.setRole('client')
         # Endereco da imagem a ser transmitida
         print("""--------- CLIENTE ------------
         Comunicação inicializada 
@@ -58,7 +59,11 @@ def main():
             print(label, "Endereço da Imagem Selecionada: " + imageR)
 
             #Aguardando Handshake com o servidor
-            com.conecta()
+            response = com.conecta()
+            if response == 'TIMEOUT':
+                print(label,'TIMEOUT!')
+                screen.updateText('TIMEOUT')
+                return
 
             print("Handshake efetuado!")
             time.sleep(2)
@@ -96,6 +101,7 @@ def main():
 
 
     elif role == 'server':
+        com.rx.setRole('server')
         #Variável indicando que o servidor está pronto para receber arquivos
         serverReady = True
 
@@ -123,6 +129,8 @@ def main():
             
             # Salva imagem recebida em arquivo
             received = fh.decode(com.getData())
+            if received == 'TIMEOUT':
+                main()
             outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
             print(label, '---------- RECEIVED DATA ----------')
