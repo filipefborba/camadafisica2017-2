@@ -60,11 +60,15 @@ class enlace(object):
             print(self.label, "SYN Enviado...")
             print(self.label, "Esperando pelo SYN+ACK do Servidor...")
             handshake = self.fh.decode(self.getData())
-            if handshake["type"] == "SYN+ACK":
-                print(self.label, "SYN+ACK recebido...")
-                self.sendData(FileHandler().buildCommandPacket("ACK"))
-                print(self.label, "Enviado ACK de Client...")
-                inSync = True
+
+            if handshake != 'TIMEOUT':
+                if handshake["type"] == "SYN+ACK":
+                    print(self.label, "SYN+ACK recebido...")
+                    self.sendData(FileHandler().buildCommandPacket("ACK"))
+                    print(self.label, "Enviado ACK de Client...")
+                    inSync = True
+            else:
+                print(self.label,'Tempo para handshake expirou!')
 
             #  FIX ----------------------------------------------------
             # else:
@@ -81,17 +85,19 @@ class enlace(object):
         while not inSync:
             print(self.label, 'Aguardando pedidos SYN...')
             received = self.fh.decode(self.getData())
-            print(self.label, 'Obtido {}'.format(received['type']))
-            if received["type"] == "SYN":
-                self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
-                print(self.label, "Enviado SYN+ACK")
-            elif received["type"] == "ACK":
-                # print(self.label,"RECEIVED ACK BACK")
-                inSync = True
+            if received != 'TIMEOUT':
+                print(self.label, 'Obtido {}'.format(received['type']))
+                if received["type"] == "SYN":
+                    self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
+                    print(self.label, "Enviado SYN+ACK")
+                elif received["type"] == "ACK":
+                    # print(self.label,"RECEIVED ACK BACK")
+                    inSync = True
+                else:
+                    print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
+                    self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
             else:
-                print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
-                self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
-
+                print(self.label,'Tempo de handshake expirou')
 
     ################################
     # Application  interface       #

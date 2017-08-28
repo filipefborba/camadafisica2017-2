@@ -99,6 +99,10 @@ class FileHandler(object):
 
     #Realiza o desempacotamento
     def decode(self,bincode):
+
+        if decode == False:
+            return 'TIMEOUT'
+
         output = {}
         decoded = self.headStruct.parse(bincode)
 
@@ -108,14 +112,14 @@ class FileHandler(object):
 
         # Faz slice dos bytes para separar o payload
         barray = bytearray(bincode)
-        filebarray = barray[20:len(barr) - 18]
+        filebarray = barray[20:len(barray) - 18]
         output['payload'] = filebarray
         
         # Escreve o arquivo na pasta received caso haja um payload
         if output['type'] == "PAYLOAD":
             outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
             f = open(outputDir, 'wb')
-            f.write(bytes(filebarr))
+            f.write(bytes(filebarray))
             print(self.label, 'Arquivo escrito com sucesso no diretório ' + outputDir )
 
         return output

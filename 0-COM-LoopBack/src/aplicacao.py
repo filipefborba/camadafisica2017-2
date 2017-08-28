@@ -13,6 +13,7 @@ import time
 from loader import Screen
 from datetime import datetime
 import os
+import threading
 
 # Serial Com Port
 #   para saber a sua porta, execute no terminal :
@@ -109,14 +110,14 @@ def main():
         while serverReady:
             #Mostra na tela o seguinte texto
             screen.updateText('Aguardando conexão...')
-            print("Aguardando dados .... ")
+            print(label,"Aguardando dados .... ")
 
             #Faz a recepção dos dados
             # rxBuffer = com.getData()
 
             com.bind()
             screen.updateText('Handshake estabelecido!')
-
+            print(label,"Handshake efetuado")
             #Começa a calcular o tempo de recepção
             now = datetime.now().microsecond
             
@@ -124,7 +125,7 @@ def main():
             received = fh.decode(com.getData())
             outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
-            print('---------- RECEIVED DATA ----------')
+            print(label, '---------- RECEIVED DATA ----------')
            
             for i in received.keys():
                 if i == 'payload':
@@ -133,10 +134,9 @@ def main():
                     print(' -> {} : {} '.format(i,received[i]))
             
             #Tamanho do arquivo lido
-            print ("Lido {} bytes ".format(received['size']))
+            print (label, "Lido {} bytes ".format(received['size']))
     
-            print("""
-            -------------------------
+            print(label, """
             Salvando dados no arquivo : - {}
             FILE LEN : {}
             """.format(outputDir,len(received['payload'])))
@@ -153,7 +153,7 @@ def main():
             print ("Processo finalizado em ",delta," ms")
             time.sleep(2)
 
-            print("---------------------------- \n [INFO] Servidor pronto")
+            print("----------------------------\n[INFO] Servidor pronto \n")
 
     else:
         print('Ocorreu um erro...')

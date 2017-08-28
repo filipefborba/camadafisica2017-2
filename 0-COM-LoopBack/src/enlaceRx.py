@@ -9,6 +9,7 @@
 
 # Importa pacote de tempo
 import time
+from datetime import datetime
 
 # Threads
 import threading
@@ -28,6 +29,7 @@ class RX(object):
         self.threadStop  = False
         self.threadMutex = True
         self.READLEN     = 1024
+        self.label       = '[enlaceRx]'
 
     def thread(self):
         """ RX thread, to send data in parallel with the code
@@ -104,14 +106,16 @@ class RX(object):
         return(self.getBuffer(size))
 
     def getPacket(self):
-        self.clearBuffer()        
+        self.clearBuffer()
+        startTime = time.time()
         while not self.packetFound:
             # self.threadPause()
-            # print('BUFFER:{} ...'.format(self.buffer[:50]))
+            # print(self.buffer)
+            runtime = time.time()
             eop = self.buffer.find(b'626f72626166726564')
             if eop != -1:
                 self.packetFound = True
-                print('EOP ENCONTRADO:' , eop)
+                # print('EOP ENCONTRADO:' , eop)
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
                 receivedbytes = receivedbytes[head:eop + 18]
@@ -119,8 +123,12 @@ class RX(object):
                 # self.threadPause()
                 self.packetFound = False
                 return receivedbytes
+            else if runtime - startTime >= 5:
+                print('[enlaceRx] Tempo para recebimento expirou.')
+                return False
+
             else:
-                time.sleep(0.025)
+                time.sleep(0.1)
 
 
     def clearBuffer(self):
