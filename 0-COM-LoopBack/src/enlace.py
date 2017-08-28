@@ -50,42 +50,47 @@ class enlace(object):
         self.fisica.close()
 
     def conecta(self):
+        """ Bloqueia a execução do programa até que uma conexão confiável
+        com o servidor seja estabelecida """
         print(self.label, "Iniciando Handshake como Cliente")
-        print(FileHandler().buildCommandPacket("SYN"))
         inSync = False
         while not inSync:
-            print("Enviando SYN...")
+            print(self.label, "Enviando SYN...")
             self.sendData(FileHandler().buildCommandPacket("SYN"))
-            print("SYN Enviado...")
-            print("Esperando pelo SYN+ACK..")
+            print(self.label, "SYN Enviado...")
+            print(self.label, "Esperando pelo SYN+ACK do Servidor...")
             handshake = self.fh.decode(self.getData())
             if handshake["type"] == "SYN+ACK":
-                print("SYN+ACK recebido...")
+                print(self.label, "SYN+ACK recebido...")
                 self.sendData(FileHandler().buildCommandPacket("ACK"))
-                print("Enviado ACK de Client...")
+                print(self.label, "Enviado ACK de Client...")
                 inSync = True
-            else:
-                time.sleep(0.25)
-                print("Reenviando SYN após 0.25s ...")
-                self.sendData(FileHandler().buildCommandPacket("SYN"))
+
+            #  FIX ----------------------------------------------------
+            # else:
+            #     time.sleep(0.25)
+            #     print("Reenviando SYN após 0.25s ...")
+            #     self.sendData(FileHandler().buildCommandPacket("SYN"))
     
     def bind(self):
+        """ Bloqueia a execução do programa até que uma conexão confiável
+        com o cliente seja estabelecida """
         print(self.label, "Iniciando Handshake como Servidor")
         inSync = False
+
         while not inSync:
-            print(self.label,'Waiting for client to send command')
+            print(self.label, 'Aguardando pedidos SYN...')
             received = self.fh.decode(self.getData())
-            print(self.label,'Obtained data = {}'.format(received))
+            print(self.label, 'Obtido {}'.format(received['type']))
             if received["type"] == "SYN":
-                print(self.label,"RECEIVED SYN")
                 self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
-                print(self.label,"SENT SYN+ACK")
+                print(self.label, "Enviado SYN+ACK")
             elif received["type"] == "ACK":
-                print(self.label,"RECEIVED ACK BACK")
+                # print(self.label,"RECEIVED ACK BACK")
                 inSync = True
             else:
+                print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
                 self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
-                print("SYN+NACK enviado. Ocorreu um erro...")
 
 
     ################################

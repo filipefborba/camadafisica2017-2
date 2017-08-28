@@ -27,6 +27,9 @@ if os.name == 'posix':
 else:
     serialName = "COM3"     
 
+global label
+label = '[MAIN]'
+
 def main():
     # Inicializa enlace
     com = enlace(serialName)
@@ -35,39 +38,42 @@ def main():
     com.enable()
 
     # Define a role selecionada na GUI
-    print('OBTAINED CHOICE: ',screen.getSelected())
     role = screen.getSelected()
+    print(label, 'Papel selecionado:',role)
 
+    # Programa para o cliente
     if role == 'client':
-        print('ROLE : CLIENT')
         # Endereco da imagem a ser transmitida
+        print("""--------- CLIENTE ------------
+        Comunicação inicializada 
+        porta : {}"
+        """.format(com.fisica.name))
         screen.updateText('Insira o arquivo abaixo')
+        print(label,'Aguardando a inserção de um arquivo')
+        
+        # Checa se o cliente selecionou um arquivo para ser enviado
         if screen.getImageDir() != None:
             imageR = screen.getImageDir()
-            print("Endereço da Imagem Selecionada: " + imageR)
-
-            # Log
-            print("-------------------------")
-            print("Comunicação inicializada")
-            print("  porta : {}".format(com.fisica.name))
-            print("-------------------------")
+            print(label, "Endereço da Imagem Selecionada: " + imageR)
 
             #Aguardando Handshake com o servidor
             com.conecta()
 
             print("Handshake efetuado!")
-            time.sleep(3)
+            time.sleep(2)
 
             # Carrega imagem
-            print ("Carregando imagem para transmissão :")
-            print (" - {}".format(imageR))
-            print("-------------------------")
+            print (label, "Carregando imagem para transmissão :")
+            print (label, " - {}".format(imageR))
+            # print("-------------------------")
             txBuffer = open(imageR, 'rb').read()
             txLen    = len(txBuffer)
 
-            # Transmite imagem
+
+            print(label, "Transmitindo .... {} bytes".format(txLen))
+
+            # Transmite a imagem e marca o tempo
             now = datetime.now().microsecond
-            print("Transmitindo .... {} bytes".format(txLen))
             com.sendData(FileHandler().buildPacket(imageR))
 
             # espera o fim da transmissão
@@ -80,12 +86,12 @@ def main():
             #Calcula o tempo de transmissão
             finished = datetime.now().microsecond
             delta = now - finished
-            print ("Transmitido       {} bytes ".format(txSize))
-            print ("Processo finalizado em ",delta," ms")
-            inSync = False
+            print (label,"Transmitido       {} bytes ".format(txSize))
+            print (label,"Processo finalizado em ",delta," ms")
+            print (label,"Envio realizado, cliente pronto para enviar novamente")
             com.disable()
         else:
-            print('Nenhuma imagem selecionada')
+            print(label, 'Nenhuma imagem selecionada, tente novamente')
 
 
     elif role == 'server':
