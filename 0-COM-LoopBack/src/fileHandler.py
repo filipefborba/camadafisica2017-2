@@ -16,10 +16,6 @@ import binascii
 # Construct Struct
 from construct import *
 
-
-dataPath = 'imgs/imageC.png'
-# dataPath = '/Users/fredcurti/Pictures/Arquivo Escaneado 3.jpeg'
-
 class FileHandler(object):
     """ This class handles files to package and unpack them,
     adding necessary data for a successful file transfer
@@ -27,118 +23,103 @@ class FileHandler(object):
     def __init__(self):
         """ Initializes the filehandler class
         """
-
+        self.label = '[FileHandler]'
         self.headStruct = Struct(
                     "start" / Int8ub,
                     "size"  / Int16ub,
-                    "ext" / Array(5,Byte),
+                    "filename" / String(6, encoding="utf-8"),
+                    "ext" / String(4, encoding="utf-8"),
                     "type" / String(7, encoding="utf-8")
                     # "checksum" / Int16ub
-                    )        
+                    )
 
-
+    #Constroi o HEAD do Payload
     def buildHead(self):
+        "Constrói o HEAD para pacotes com payload"
+        #'Start' do HEAD
         headSTART  = 0xFF
-        fileExtension = self.filePath.split('.')
-        fileExtension = fileExtension[len(fileExtension) - 1]
-        
-        
-        #Tipo de imagem
-        extArray = self.generate_extArr(fileExtension)
+        #Tipo de Arquivo
+        file = self.filePath.split('/')
+        file = file[len(file) - 1]
+        file = file.split(".")
+        fileName = file[0]
+        fileExtension = file[1]
 
         #Checksum
-        md5 = self.generate_md5()
+        #md5 = self.generate_md5()
 
+        #Construção do HEAD
         head = self.headStruct.build(
             dict(
                 start = headSTART,
                 size = self.fileSize,
-                ext = extArray,
+                filename = String(6, encoding="utf-8").build(fileName),
+                ext = String(4, encoding="utf-8").build(fileExtension),
                 type = String(7, encoding="utf-8").build("PAYLOAD")
                 # checksum = md5
             )
         )
-        print ('===== \nGENERATED HEAD:', head ,'LEN:', len(head))
         return head
-
-    def buildCommandPacket(self, commandType):
-        head = self.headStruct.build (
-            dict(
-                start = 0xFF,
-                size = 0,
-                ext = [0]*5,
-                type = String(7, encoding="utf-8").build(commandType.upper())
-            ))
-        print('===== \nGENERATED COMMAND HEAD:', head ,'LEN:', len(head))
-        return head
-
-    def generate_md5(self):
-        hash_md5 = hashlib.md5()
-        with open(self.filePath, "rb") as f:
-            for chunk in iter(lambda: f.read(4096), b""):
-                hash_md5.update(chunk)
-        return hash_md5.hexdigest()
-
-    def generate_extArr(self,fileExt):
-        arr = []
-        arr.append(len(fileExt))
-        for i in range(len(fileExt)):
-            arr.append( ord(fileExt[i]))
-        
-        if len(fileExt) != 4:
-            arr.append(0)
-
-        return arr
 
     def buildEOP(self):
+        "Constrói o EOP Padrão"
         eop = b'borbafred'
-        print ('GENERATED EOP : ',binascii.hexlify(eop), 'LEN : ', len(binascii.hexlify(eop)),'\n=====')
         return binascii.hexlify(eop)
 
+    
+    def buildCommandPacket(self, commandType):
+        "Constroi o HEAD dos comandos SYN, ACK e NACK"
+        head = self.headStruct.build(
+            dict(
+                start = 0xFF,
+                size = 0x00,
+                filename = String(6, encoding="utf-8").build("NULL"),
+                ext = String(4, encoding="utf-8").build("NULL"),
+                type = String(7, encoding="utf-8").build(commandType.upper())
+            )
+        )
+        return head + self.buildEOP()
+
+    #Gera o hash do Checksum
+    # def generate_md5(self):
+    #     hash_md5 = hashlib.md5()
+    #     with open(self.filePath, "rb") as f:
+    #         for chunk in iter(lambda: f.read(4096), b""):
+    #             hash_md5.update(chunk)
+    #     return hash_md5.hexdigest()
+
+
+    #Constroi o pacote do Payload
     def buildPacket(self,filePath):
+        "Retorna um pacote com payload pronto para ser enviado"
         self.filePath = filePath
         self.data = open(self.filePath,'rb')
         self.fileSize = os.path.getsize(self.filePath)
+        return self.buildHead() + open(self.filePath, 'rb').read() + self.buildEOP()
 
-
-        data = self.buildHead()
-        data += open(self.filePath, 'rb').read()
-        data += self.buildEOP()
-        return data
-
+    #Realiza o desempacotamento
     def decode(self,bincode):
+
+        if bincode == False:
+            return 'TIMEOUT'
+
         output = {}
         decoded = self.headStruct.parse(bincode)
+
+        # Constroi um dicionário normal com as informações do HEAD obtido
         for each in decoded.items():
             output[each[0]] = each[1]
-        extLen = output['ext'][0]
-        ext = ''
-        for i in range(extLen):
-            ext += chr(output['ext'][i + 1])
-        barr = bytearray(bincode)
-        filebarr = barr[15:len(barr) - 18]
 
-        output['ext'] = ext
-        output['payload'] = filebarr
-        # print(
-        # """
-        # -> OBTAINED HEAD : {}
-        # -> OBTAINED BODY : {} ...
-        # -> EOF AT POSITION : {}
-        # """
-        # .format(output,filebarr[:50],len(barr) - 18))
-        return output
-
-
+        # Faz slice dos bytes para separar o payload
+        barray = bytearray(bincode)
+        filebarray = barray[20:len(barray) - 18]
+        output['payload'] = filebarray
         
+        # Escreve o arquivo na pasta received caso haja um payload
+        if output['type'] == "PAYLOAD":
+            outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
+            f = open(outputDir, 'wb')
+            f.write(bytes(filebarray))
+            print(self.label, 'Arquivo escrito com sucesso no diretório ' + outputDir )
 
-# fh = FileHandler()
-# fh.decode(fh.buildPacket(dataPath))
-
-# fh.decode(fh.buildPacket())
-
-
-
-
-
-
+        return output

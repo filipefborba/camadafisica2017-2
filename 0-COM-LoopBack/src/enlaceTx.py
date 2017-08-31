@@ -34,7 +34,7 @@ class TX(object):
         """
         while not self.threadStop:
             if(self.threadMutex):
-                print("Enviando dados...")
+                print("[enlaceTx] Enviando dados...")
                 # print(self.buffer)
                 self.transLen    = self.fisica.write(self.buffer)
                 self.threadMutex = False

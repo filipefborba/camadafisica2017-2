@@ -9,6 +9,8 @@
 
 # Importa pacote de tempo
 import time
+from datetime import datetime
+from loader import Screen
 
 # Threads
 import threading
@@ -28,6 +30,8 @@ class RX(object):
         self.threadStop  = False
         self.threadMutex = True
         self.READLEN     = 1024
+        self.label       = '[enlaceRx]'
+        self.role        = None
 
     def thread(self):
         """ RX thread, to send data in parallel with the code
@@ -61,6 +65,9 @@ class RX(object):
         """ Resume the RX thread (after suspended)
         """
         self.threadMutex = True
+
+    def setRole(self,role):
+        self.role = role
 
     def getIsEmpty(self):
         """ Return if the reception buffer is empty
@@ -103,31 +110,17 @@ class RX(object):
 
         return(self.getBuffer(size))
 
-    # def getPacket(self):
-    #     self.clearBuffer()
-    #     while not self.packetFound:
-    #         self.threadPause()
-    #         packet = self.buffer
-    #         EOF = packet.find(b'626f72626166726564')
-    #         print(self.buffer)
-    #         if EOF != -1:
-    #             print('FOUND EOF : ', EOF)
-    #             self.packetFound = True
-    #             self.threadPause()
-    #         else:
-    #             time.sleep(0.05)
-    #             self.threadResume()
-
-
     def getPacket(self):
-        self.clearBuffer()        
+        self.clearBuffer()
+        startTime = time.time()
         while not self.packetFound:
             # self.threadPause()
-            # print('BUFFER:{} ...'.format(self.buffer[:50]))
+            # print(self.buffer)
+            runtime = time.time()
             eop = self.buffer.find(b'626f72626166726564')
             if eop != -1:
                 self.packetFound = True
-                print('EOP ENCONTRADO:' , eop)
+                # print('EOP ENCONTRADO:' , eop)
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
                 receivedbytes = receivedbytes[head:eop + 18]
@@ -135,8 +128,12 @@ class RX(object):
                 # self.threadPause()
                 self.packetFound = False
                 return receivedbytes
+            elif runtime - startTime >= 5 and self.role == 'client':
+                print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
+                return False
+
             else:
-                time.sleep(0.025)
+                time.sleep(0.1)
 
 
     def clearBuffer(self):
