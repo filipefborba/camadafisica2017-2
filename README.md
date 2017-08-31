@@ -65,12 +65,10 @@ sendo commandType uma String contendo "SYN", "ACK, "SYN+ACK" ou "SYN+NACK" (para
 
 Os pacotes, então, são representados da seguinte maneira:
 
-Descrever os pacotes (SYN,ACK,NACK). diagrama dos pacotes.
-
 Depois, as imagens a seguir representam o envio e recepção dos pacotes como uma máquina de estados. Desta forma, é possível visualizar bem o funcionamento do programa:
 
-Diagrame o envio de pacotes em como uma máquina de estados.
+![Imgur](http://imgur.com/a/aw2yv)
 
-Diagrame a recepção de pacotes como uma máquina de estados.
+![Imgur](http://imgur.com/jkEcQQJ)
 
 Por fim, é possível notar que deve existir um "timeout" para que o programa não fique interrompido na mesma tarefa. O tempo para timeout escolhido foi de 5 segundos, pois consideramos o suficiente para o envio e processamento do handshake.
