@@ -50,3 +50,27 @@ Definida a quantiade de bytes reservada para o controle de pacote, podemos calcu
 O Overhead desse protocolo é, então, 100,028%.
 
 Throughput é a definião de quão rápido um dado pode ser enviado numa rede, levando em consideração a taxa de envio (baudrate), o overhead de encapsulamento e de serialização. O Baudrate é a taxa em bits por segundo (bps) com a qual uma rede consegue trasmitir bits. A dos arduínos em questão é de 115200 bps.
+
+# Projeto 3
+
+Esse projeto consiste na criação de uma comunicação de confirmação entre o servidor e cliente ("_handshake_"). O Handshake implementado consiste no envio de um pacote "SYN" do cliente, que é respondido pelo servidor por um "SYN+ACK" em caso de sucesso de comunicação ou um "SYN+NACK" em caso de falha. Por fim, se o cliente recebe o SYN+ACK, responde com um ACK e a transferência começa, caso contrário ele tenta enviar um SYN novamente.
+
+O HEAD dos pacotes de comando possui 5 campos: start, size, filename, ext e type (assim como o HEAD do projeto 2!). Os pacotes SYN, ACK, SYN+ACK e SYN+NACK são construídos da mesma forma, porém, seu "type" é diferente. Através do método buildCommandPacket(commandType) é possível construir esses pacotes com types diferentes. No caso, os campos são preenchidos da seguinte maneira no método:
+* start = 0xFF
+* size = 0x00
+* filename = "NULL"
+* ext = "NULL"
+* type = commandType
+sendo commandType uma String contendo "SYN", "ACK, "SYN+ACK" ou "SYN+NACK" (para o caso de um pacote de dados, o tipo é "PAYLOAD").
+
+Os pacotes, então, são representados da seguinte maneira:
+
+Descrever os pacotes (SYN,ACK,NACK). diagrama dos pacotes.
+
+Depois, as imagens a seguir representam o envio e recepção dos pacotes como uma máquina de estados. Desta forma, é possível visualizar bem o funcionamento do programa:
+
+Diagrame o envio de pacotes em como uma máquina de estados.
+
+Diagrame a recepção de pacotes como uma máquina de estados.
+
+Por fim, é possível notar que deve existir um "timeout" para que o programa não fique interrompido na mesma tarefa. O tempo para timeout escolhido foi de 5 segundos, pois consideramos o suficiente para o envio e processamento do handshake.
