@@ -63,6 +63,7 @@ def main():
             if response == 'TIMEOUT':
                 print(label,'TIMEOUT!')
                 screen.updateText('TIMEOUT')
+                com.disable()
                 return
 
             print("Handshake efetuado!")
@@ -129,8 +130,7 @@ def main():
             
             # Salva imagem recebida em arquivo
             received = fh.decode(com.getData())
-            if received == 'TIMEOUT':
-                main()
+
             outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
             print(label, '---------- RECEIVED DATA ----------')
