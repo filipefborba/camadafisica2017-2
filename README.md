@@ -65,6 +65,8 @@ sendo commandType uma String contendo "SYN", "ACK, "SYN+ACK" ou "SYN+NACK" (para
 
 Os pacotes, então, são representados da seguinte maneira:
 
+![Imgur](http://i.imgur.com/MWvPV7e.jpg)
+
 Depois, as imagens a seguir representam o envio e recepção dos pacotes como uma máquina de estados. Desta forma, é possível visualizar bem o funcionamento do programa:
 
 ![Imgur](http://i.imgur.com/yjJItZf.jpg)
