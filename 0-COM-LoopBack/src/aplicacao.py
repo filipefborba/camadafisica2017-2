@@ -130,7 +130,9 @@ def main():
             
             # Salva imagem recebida em arquivo
             received = fh.decode(com.getData())
-
+            if received == 'TIMEOUT':
+                print(label,'TIMEOUT')
+                
             outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
             print(label, '---------- RECEIVED DATA ----------')
