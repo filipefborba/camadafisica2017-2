@@ -24,7 +24,7 @@ import threading
 # serialName = "COM3"                  # Windows(variacao de)
 
 if os.name == 'posix':
-    serialName = "/dev/tty.usbmodem1421"
+    serialName = "/dev/tty.usbmodem1411"
 else:
     serialName = "COM3"     
 
@@ -65,7 +65,7 @@ def main():
                 screen.updateText('TIMEOUT')
                 com.disable()
                 return
-
+        
             print("Handshake efetuado!")
             time.sleep(2)
 
@@ -75,7 +75,6 @@ def main():
             # print("-------------------------")
             txBuffer = open(imageR, 'rb').read()
             txLen    = len(txBuffer)
-
 
             print(label, "Transmitindo .... {} bytes".format(txLen))
 
@@ -122,9 +121,8 @@ def main():
             #Faz a recepção dos dados
             # rxBuffer = com.getData()
 
-            com.bind()
-            screen.updateText('Handshake estabelecido!')
-            print(label,"Handshake efetuado")
+            response = com.bind()
+            
             #Começa a calcular o tempo de recepção
             now = datetime.now().microsecond
             
@@ -136,7 +134,7 @@ def main():
             outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
 
             print(label, '---------- RECEIVED DATA ----------')
-           
+    
             for i in received.keys():
                 if i == 'payload':
                     print(' -> payload : {} ... '.format(received[i][:15]))

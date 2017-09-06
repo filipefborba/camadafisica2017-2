@@ -106,6 +106,8 @@ class FileHandler(object):
         output = {}
         decoded = self.headStruct.parse(bincode)
 
+        # print('[PARSE]',decoded)
+
         # Constroi um dicionário normal com as informações do HEAD obtido
         for each in decoded.items():
             output[each[0]] = each[1]

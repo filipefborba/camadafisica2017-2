@@ -53,8 +53,7 @@ class enlace(object):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o servidor seja estabelecida """
         print(self.label, "Iniciando Handshake como Cliente")
-        inSync = False
-        while not inSync:
+        while not self.connected:
             print(self.label, "Enviando SYN...")
             self.sendData(FileHandler().buildCommandPacket("SYN"))
             print(self.label, "SYN Enviado...")
@@ -66,7 +65,8 @@ class enlace(object):
                     print(self.label, "SYN+ACK recebido...")
                     self.sendData(FileHandler().buildCommandPacket("ACK"))
                     print(self.label, "Enviado ACK de Client...")
-                    inSync = True
+                    self.connected = True
+                    return self.connected
             else:
                 print(self.label,'Tempo para handshake expirou!')
                 return handshake
@@ -81,25 +81,30 @@ class enlace(object):
     def bind(self):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o cliente seja estabelecida """
-        print(self.label, "Iniciando Handshake como Servidor")
-        inSync = False
-
-        while not inSync:
-            print(self.label, 'Aguardando pedidos SYN...')
-            received = self.fh.decode(self.getData())
-            try:
-                print(self.label, 'Obtido {}'.format(received['type']))
-                if received["type"] == "SYN":
-                    self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
-                    print(self.label, "Enviado SYN+ACK")
-                elif received["type"] == "ACK":
-                    # print(self.label,"RECEIVED ACK BACK")
-                    inSync = True
-                else:
-                    print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
-                    self.sendData(self.fh.buildCommandPacket("SYN+NACK"))
-            except:
-                pass
+        
+        if self.connected:
+            print(self.label,"Handshake já está estabelecido")
+            return True
+        else:
+            while not self.connected:
+                print(self.label, "Iniciando Handshake como Servidor")
+                print(self.label, 'Aguardando pedidos SYN...')
+                received = self.fh.decode(self.getData())
+                try:
+                    print(self.label, 'Obtido {}'.format(received['type']))
+                    if received["type"] == "SYN":
+                        self.sendData(self.fh.buildCommandPacket("SYN+ACK"))
+                        print(self.label, "Enviado SYN+ACK")
+                    elif received["type"] == "ACK":
+                        # print(self.label,"RECEIVED ACK BACK")
+                        self.connected = True
+                        return self.connected
+                    else:
+                        print(self.label, "Ocorreu um erro... Enviando NACK")
+                        self.sendData(self.fh.buildCommandPacket("NACK"))
+                except:
+                    pass
+        
 
     ################################
     # Application  interface       #
@@ -110,10 +115,36 @@ class enlace(object):
         self.tx.sendBuffer(data)
 
     def getData(self):
-        """ Get n data over the enlace interface
+        """ Get n data over the enla`e interface
         Return the byte array and the size of the buffer
         """
-        return self.rx.getPacket()
+        nAchei = True
+        while(nAchei):
+            pRaw, bufferEmpty = self.rx.getPacket()
+            print("GETDATA",pRaw,bufferEmpty)
+            if(pRaw == False):
+                print("Timeout: buffer empty")
+                nAchei = True
+            elif(bufferEmpty == False):
+                print("Timeout: Buffer corrompido")
+                self.sendData(self.fh.buildCommandPacket("NACK"))    
+                nAchei = True   
+            else :
+                pDecode = FileHandler().decode(p)
+                if(pDecode["type"] == "PAYLOAD"):
+                    if(pDecode['size'] != len(pDecode['payload'])):
+                        print("Pacote corrompido")
+                        self.sendData(self.fh.buildCommandPacket("NACK"))
+                    else:
+                        return(pDecode)
+                else :
+                    print("Nao é um payload")
+                    self.sendData(self.fh.buildCommandPacket("NACK"))
+
+
+                    
+
+
 
 
     

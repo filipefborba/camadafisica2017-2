@@ -91,18 +91,16 @@ class RX(object):
         self.threadResume()
         return(b)
 
-    def getBuffer(self, nData):
+    def getBuffer(self):
         """ Remove n data from buffer
         """
         self.threadPause()
-        b           = self.buffer[0:nData]
-        self.buffer = self.buffer[nData:]
+        b           = self.buffer[:]
         self.threadResume()
         return(b)
 
     def getNData(self, size):
         """ Read N bytes of data from the reception buffer
-
         This function blocks until the number of bytes is received
         """
         while(self.getBufferLen() < size):
@@ -115,11 +113,13 @@ class RX(object):
         startTime = time.time()
         while not self.packetFound:
             # self.threadPause()
-            # print(self.buffer)
+            # print(self.getBuffer())
+            # print('-------------------------------- \n ')
             runtime = time.time()
             eop = self.buffer.find(b'626f72626166726564')
             if eop != -1:
                 self.packetFound = True
+                startTime = time.time()
                 # print('EOP ENCONTRADO:' , eop)
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
@@ -127,10 +127,14 @@ class RX(object):
                 # print('RECEIVED BYTES : ', receivedbytes)
                 # self.threadPause()
                 self.packetFound = False
-                return receivedbytes
-            elif runtime - startTime >= 5 and self.role == 'client':
+                return receivedbytes, False
+            elif runtime - startTime >= 5:
                 print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
-                return False
+                if(self.getIsEmpty()) :
+                    return False,True
+                else :
+                    self.clearBuffer()
+                    return False,False
 
             else:
                 time.sleep(0.1)
