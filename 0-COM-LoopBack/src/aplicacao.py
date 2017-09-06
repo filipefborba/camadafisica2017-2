@@ -59,7 +59,7 @@ def main():
             print(label, "Endereço da Imagem Selecionada: " + imageR)
 
             #Aguardando Handshake com o servidor
-            response = com.conecta()
+            response = com.conect()
             if response == 'TIMEOUT':
                 print(label,'TIMEOUT!')
                 screen.updateText('TIMEOUT')

@@ -113,28 +113,24 @@ class RX(object):
         startTime = time.time()
         while not self.packetFound:
             # self.threadPause()
-            # print(self.getBuffer())
-            # print('-------------------------------- \n ')
             runtime = time.time()
             eop = self.buffer.find(b'626f72626166726564')
             if eop != -1:
                 self.packetFound = True
                 startTime = time.time()
-                # print('EOP ENCONTRADO:' , eop)
                 head = self.buffer.find(0xFF)
                 receivedbytes = self.buffer
                 receivedbytes = receivedbytes[head:eop + 18]
-                # print('RECEIVED BYTES : ', receivedbytes)
                 # self.threadPause()
                 self.packetFound = False
                 return receivedbytes, False
             elif runtime - startTime >= 5:
                 print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
-                if(self.getIsEmpty()) :
-                    return False,True
-                else :
+                if(self.getIsEmpty()):
+                    return False, True
+                else:
                     self.clearBuffer()
-                    return False,False
+                    return False, False
 
             else:
                 time.sleep(0.1)
@@ -144,5 +140,3 @@ class RX(object):
         """ Clear the reception buffer
         """
         self.buffer = b""
-
-
