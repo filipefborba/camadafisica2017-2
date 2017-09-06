@@ -10,7 +10,6 @@
 # Importa pacote de tempo
 import time
 from datetime import datetime
-from loader import Screen
 
 # Threads
 import threading
@@ -65,9 +64,6 @@ class RX(object):
         """ Resume the RX thread (after suspended)
         """
         self.threadMutex = True
-
-    def setRole(self,role):
-        self.role = role
 
     def getIsEmpty(self):
         """ Return if the reception buffer is empty

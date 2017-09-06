@@ -16,7 +16,7 @@ import binascii
 # Construct Struct
 from construct import *
 
-class FileHandler(object):
+class PacketHandler(object):
     """ This class handles files to package and unpack them,
     adding necessary data for a successful file transfer
     """

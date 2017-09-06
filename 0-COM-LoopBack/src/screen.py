@@ -2,6 +2,7 @@
 import tkinter as tk
 from tkinter import filedialog
 import time
+from aplicacao import Application
 from threading import Thread
 
 class Screen:
@@ -9,7 +10,7 @@ class Screen:
         self.btnfn = None
         self.startTrigger = False
         self.role = 'none'
-        self.filedir = None
+        self.fileDir = None
         print('Screen Started')
         self.window = tk.Tk()
         self.window.geometry('250x200')
@@ -43,22 +44,21 @@ class Screen:
         # self.serverButton.grid(row=7, rowspan=1, column=0, sticky='nsew')        
         self.serverButton.place(rely=1.0, relx=1.0, x=-225, y=-40, anchor='sw')
 
-
     def setClient(self):
+        self.app = Application('client')
+        # Thread(target=self.app.main).start()
         self.hideRoleButtons()
         self.role = 'client'
-        # self.fileNameLabel = tk.Label()
-        # self.fileNameLabel.configure(text='',fg='white',bg='#006400')
-        # self.fileNameLabel.grid(row=5,rowspan=1,column=0,sticky='nsew')
-
         self.insertButton = tk.Button(self.window, text='Escolher', command=self.askopenfile)
         self.insertButton.configure(fg='black',bg='#1e9622',highlightbackground='#006400')
         self.insertButton.grid(row=4, rowspan=1, column=0, sticky='nsew')
 
     def setServer(self):
+        self.app = Application('server')
+        # Thread(target=self.app.main).start()
+
         self.hideRoleButtons()
         self.role = 'server'
-        Thread(target=self.btnfn).start()
 
     def hideRoleButtons(self):
         self.serverButton.destroy()
@@ -70,29 +70,33 @@ class Screen:
     def updateText(self,txt):
         self.title2.configure(text=txt.upper())
 
-    def getSelected(self):
+    def getRole(self):
         return self.role
 
     def setFn(self,fn):
         self.btnfn = fn
 
-
     def askopenfile(self):
-        filename = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("png files","*.png"),("all files","*.*")))
-        self.filedir = filename
-        split = filename.split('/')
+        fileName = filedialog.askopenfilename(initialdir = "/",title = "Select file",filetypes = (("jpeg files","*.jpg"),("png files","*.png"),("all files","*.*")))
+        self.fileDir = fileName
+        split = fileName.split('/')
         self.insertButton.configure(text='Arquivo: ' + split[len(split) - 1])
-        if filename == '':
-            print('NO FILE CHOSEN')
+        if fileName == '':
+            self.fileDir = None
+            print('Nenhum arquivo selecionado... Aguardando seleção')
         else:
+            self.app.client.sendFile(fileName)
             self.sendButton = tk.Button(self.window,command=self.btnfn)
             self.sendButton.configure(text='Enviar',fg='white',bg='#006400',highlightbackground='#006400',font=('calibri', 15, 'bold'))
             self.sendButton.place(rely=1.0, relx=1.0, x=-162.5, y=-5, anchor='sw')
 
-    def getImageDir(self):
-        return self.filedir
-        
 
+    def getFileDirectory(self):
+        while self.fileDir == None:
+            time.sleep(1)
+        return self.fileDir
+
+        
     def onScriptStopped(self):
         self.startTrigger = False
 
@@ -132,3 +136,5 @@ class Screen:
     def on_closing(self):
         self.window.destroy()
         raise SystemExit
+
+Screen().start()

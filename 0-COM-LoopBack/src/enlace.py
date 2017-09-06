@@ -12,7 +12,7 @@ import time
 
 # Construct Struct
 from construct import *
-from filehandler import FileHandler
+from packethandler import PacketHandler
 # Interface Física
 from interfaceFisica import fisica
 
@@ -31,7 +31,7 @@ class enlace(object):
         self.rx          = RX(self.fisica)
         self.tx          = TX(self.fisica)
         self.connected   = False
-        self.fh          = FileHandler()
+        self.ph          = PacketHandler()
         self.label       = '[ENLACE]'
 
     def enable(self):
@@ -49,33 +49,50 @@ class enlace(object):
         time.sleep(1)
         self.fisica.close()
 
-    def conect(self):
+    def connect(self,client):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o servidor seja estabelecida """
         print(self.label, "Iniciando Handshake como Cliente")
-        while not self.connected:
-            print(self.label, "Enviando SYN...")
-            self.sendSyn()
-            print(self.label, "SYN Enviado...")
-            print(self.label, "Esperando pelo SYN+ACK do Servidor...")
-            handshake = self.fh.decode(self.getData())
-            if handshake != 'TIMEOUT':
-                if handshake["type"] == "SYN":
-                    handshake = self.fh.decode(self.getData())
-                    print(self.label, "SYN recebido...")
-                    if handshake["type"] == "ACK":
-                        print(self.label, "ACK recebido...")
-                        self.sendAck()
-                        print(self.label, "Enviado ACK de Client...")
-                        self.connected = True
-                        return self.connected
-                    else:
-                        print(self.label, "Erro no conect, SYN+ACK")
-                        pass
-            else:
-                print(self.label,'Tempo para handshake expirou!')
-                return handshake
-                break
+        while client.handshake == False:
+            if client.state == 'STARTED':
+                # print(self.label, "Enviando SYN...")
+                self.sendSyn()
+                client.setState('ENVIANDO_SYN')
+
+            if client.state == 'ENVIANDO_SYN':
+                client.setState('AGUARDANDO_SYN+ACK')
+                self.ph.decode()
+                client.setState('ENVIANDO_ACK')
+                
+                client.setState('SYNACK_ENVIADO')
+                client.setState('ESPERANDO_ACKBACK')
+                time.sleep(5)
+
+
+
+                # print(self.label, "SYN Enviado...")
+                
+
+       
+            
+            # handshake = self.fh.decode(self.getData())
+            # if handshake != 'TIMEOUT':
+            #     if handshake["type"] == "SYN":
+            #         handshake = self.fh.decode(self.getData())
+            #         print(self.label, "SYN recebido...")
+            #         if handshake["type"] == "ACK":
+            #             print(self.label, "ACK recebido...")
+            #             self.sendAck()
+            #             print(self.label, "Enviado ACK de Client...")
+            #             self.connected = True
+            #             return self.connected
+            #         else:
+            #             print(self.label, "Erro no conect, SYN+ACK")
+            #             pass
+            # else:
+            #     print(self.label,'Tempo para handshake expirou!')
+            #     return handshake
+            #     break
     
     def bind(self):
         """ Bloqueia a execução do programa até que uma conexão confiável
@@ -83,7 +100,7 @@ class enlace(object):
         print(self.label, "Iniciando Handshake como Servidor")
         while not self.connected:
             print(self.label, 'Aguardando pedidos SYN...')
-            received = self.fh.decode(self.getData())
+            received = self.ph.decode(self.getData())
             try:
                 print(self.label, 'Obtido {}'.format(received['type']))
                 if received["type"] == "SYN":
@@ -102,15 +119,15 @@ class enlace(object):
 
     
     def sendSyn(self):
-        p = self.fh.buildCommandPacket("SYN")
+        p = self.ph.buildCommandPacket("SYN")
         self.sendData(p)
 
     def sendAck(self):
-        p = self.fh.buildCommandPacket("ACK")
+        p = self.ph.buildCommandPacket("ACK")
         self.sendData(p)
 
     def sendNack(self):
-        p = self.fh.buildCommandPacket("NACK")
+        p = self.ph.buildCommandPacket("NACK")
         self.sendData(p)
     
 
@@ -127,25 +144,25 @@ class enlace(object):
 
         """
         notFound = True
-        while(notFound):
+        while notFound:
             pRaw, bufferEmpty = self.rx.getPacket()
             print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)
-            if(pRaw == False):
+            if pRaw == False:
                 print(self.label,"Timeout: Buffer Empty")
                 notFound = True
-            elif(bufferEmpty == False):
+            elif bufferEmpty == False:
                 print("Timeout: Buffer corrompido")
                 self.sendNack()
                 notFound = True   
             else:
-                pDecoded = self.fh.decode(pRaw)
-                if(pDecoded["type"] == "PAYLOAD"):
-                    if(pDecoded['size'] != len(pDecoded['payload'])):
+                pDecoded = self.ph.decode(pRaw)
+                if pDecoded["type"] == "PAYLOAD":
+                    if pDecoded['size'] != len(pDecoded['payload']):
                         print("Pacote corrompido... Enviando NACK")
                         self.sendNack()
                     else:
                         return pDecoded
-                elif(pDecoded["type"] == "ACK" && "SYN"):
+                elif pDecoded["type"] == "ACK" or pDecoded["type"] == "SYN":
                     return pDecoded
                 else:
                     print("Nao é um payload ou comando... Enviado NACK")
