@@ -126,7 +126,7 @@ class RX(object):
                 return receivedbytes, False
             elif runtime - startTime >= 5:
                 print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
-                if(self.getIsEmpty()):
+                if self.getIsEmpty():
                     return False, True
                 else:
                     self.clearBuffer()

@@ -76,7 +76,7 @@ class enlace(object):
         com o cliente seja estabelecida """
         print(self.label, "Iniciando Handshake como Servidor")
         print(self.label, 'Aguardando pedidos SYN...')
-        
+
         syn = waitForSyn()
         if syn:
             print(self.label, '[DEBUG] Obtido {}'.format(received['type']))
@@ -141,26 +141,32 @@ class enlace(object):
 
         """
         notFound = True
-        while(notFound):
+        while notFound :
             pRaw, bufferEmpty = self.rx.getPacket()
             print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)
-            if(pRaw == False):
-                print(self.label,"Timeout: Buffer Empty")
+
+            if pRaw == False:
+                print(self.label,"[getData] ", "Timeout: Buffer Empty")
                 notFound = True
-            elif(bufferEmpty == False):
-                print("Timeout: Buffer corrompido")
+
+            elif bufferEmpty == False:
+                print(self.label,"[getData] ","Timeout: Buffer corrompido")
                 self.sendNack()
-                notFound = True   
+                notFound = True
+
             else:
                 pDecoded = self.fh.decode(pRaw)
-                if(pDecoded["type"] == "PAYLOAD"):
-                    if(pDecoded['size'] != len(pDecoded['payload'])):
-                        print("Pacote corrompido... Enviando NACK")
+
+                if pDecoded["type"] == "PAYLOAD":
+                    if pDecoded['size'] != len(pDecoded['payload']):
+                        print(self.label,"[getData] ","Pacote corrompido... Enviando NACK...")
                         self.sendNack()
                     else:
                         return pDecoded
-                elif(pDecoded["type"] == "ACK" && "SYN"):
+
+                elif pDecoded["type"] == "ACK" or pDecoded["type"] == "SYN":
                     return pDecoded
+                
                 else:
-                    print("Nao é um payload ou comando... Enviado NACK")
+                    print(self.label,"[getData] ","Nao é um payload ou comando... Enviado NACK")
                     self.sendNack()
