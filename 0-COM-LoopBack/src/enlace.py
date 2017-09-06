@@ -49,56 +49,55 @@ class enlace(object):
         time.sleep(1)
         self.fisica.close()
 
-    def conect(self):
+    def connect(self):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o servidor seja estabelecida """
         print(self.label, "Iniciando Handshake como Cliente")
-        while not self.connected:
-            print(self.label, "Enviando SYN...")
-            self.sendSyn()
-            print(self.label, "SYN Enviado...")
-            print(self.label, "Esperando pelo SYN+ACK do Servidor...")
-            handshake = self.fh.decode(self.getData())
-            if handshake != 'TIMEOUT':
-                if handshake["type"] == "SYN":
-                    handshake = self.fh.decode(self.getData())
-                    print(self.label, "SYN recebido...")
-                    if handshake["type"] == "ACK":
-                        print(self.label, "ACK recebido...")
-                        self.sendAck()
-                        print(self.label, "Enviado ACK de Client...")
-                        self.connected = True
-                        return self.connected
-                    else:
-                        print(self.label, "Erro no conect, SYN+ACK")
-                        pass
-            else:
-                print(self.label,'Tempo para handshake expirou!')
-                return handshake
-                break
+        print(self.label, "Enviando SYN...")
+        self.sendSyn()
+        print(self.label, "SYN Enviado...")
+        print(self.label, "Esperando pelo SYN+ACK do Servidor...")
+        syn = waitForSyn()
+        ack = waitforAck()
+        if syn and ack:
+            print(self.label, "SYN e ACK recebidos...")
+            print(self.label, "Enviando ACK de Client...")
+            self.sendAck()
+            print(self.label, "ACK de Client enviado...")
+            self.connected = True
+            print(self.label, "Conectado!")
+            return self.connected
+        else:
+            print(self.label, "[Connect] Handshake falhou!")
+            return self.connected
     
     def bind(self):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o cliente seja estabelecida """
         print(self.label, "Iniciando Handshake como Servidor")
-        while not self.connected:
-            print(self.label, 'Aguardando pedidos SYN...')
-            received = self.fh.decode(self.getData())
-            try:
-                print(self.label, 'Obtido {}'.format(received['type']))
-                if received["type"] == "SYN":
-                    self.sendSyn()
-                    self.sendAck()
-                    print(self.label, "Enviado SYN+ACK")
-                elif received["type"] == "ACK":
-                    print(self.label,"ACK recebido de volta")
-                    self.connected = True
-                else:
-                    print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
-                    self.sendSyn()
-                    self.sendNack()
-            except:
-                pass
+        print(self.label, 'Aguardando pedidos SYN...')
+        
+        syn = waitForSyn()
+        if syn:
+            print(self.label, '[DEBUG] Obtido {}'.format(received['type']))
+            print(self.label, "Enviando SYN e ACK...")
+            self.sendSyn()
+            self.sendAck()
+            print(self.label, "SYN e ACK enviados...")
+
+        ack = waitforAck()
+        if ack:
+            print(self.label,"ACK recebido de volta")
+            print(self.label,"Conectado!")
+            self.connected = True
+            return self.connected
+
+        else:
+            print(self.label, "[Server] Handshake falhou!")
+            print(self.label, "Enviando SYN e NACK...")
+            self.sendSyn()
+            self.sendNack()
+            return self.connected
 
     
     def sendSyn(self):
@@ -112,6 +111,21 @@ class enlace(object):
     def sendNack(self):
         p = self.fh.buildCommandPacket("NACK")
         self.sendData(p)
+
+    def waitForSyn(self):
+        handshake = self.fh.decode(self.getData())
+        if handshake["type"] == "SYN":
+            return True
+        else:
+            return False
+
+    def waitForAck(self):
+        handshake = self.fh.decode(self.getData())
+        if handshake["type"] == "ACK":
+            return True
+        else:
+            return False
+
     
 
     ################################
