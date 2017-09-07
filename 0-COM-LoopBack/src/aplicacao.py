@@ -67,22 +67,25 @@ class Application:
 class Client:
     def __init__(self,app):
         self.handshake = False
-        self.state = 'STARTED'
+        self.state = 'INICIAL'
         self.app = app
         print('Classe Client Iniciada')
 
     def sendFile(self,filePath):
+        file = open(filePath, 'rb').read()
         if self.handshake:
-            self.app.com.sendData(filePath)
+            self.app.com.sendData(PacketHandler().buildPacket(file))
         else:
             self.app.com.connect(self)
+            if self.handshake == True:
+                self.app.com.sendData(PacketHandler().buildPacket(file))
 
     def getState(self):
         return self.state
     
     def setState(self,newState):
-        self.state = newState
         print('[Client] State changed! ' + self.state + ' -> ' + newState )
+        self.state = newState
 
     # # Endereco da imagem a ser transmitida
     # print("""
@@ -138,8 +141,27 @@ class Client:
 
 class Server:
     def __init__(self,app):
+        self.handshake = False
+        self.state = 'INICIAL'
         self.app = app
         print('Classe Server Iniciada')
+        self.getFile()
+        
+    def getFile(self):
+        if self.handshake:
+            self.app.com.getData()
+        else:
+            self.app.com.bind(self)
+            if self.handshake == True:
+                self.app.com.sendData(filePath)
+
+    def getState(self):
+        return self.state
+    
+    def setState(self,newState):
+        print('[Server] State changed! ' + self.state + ' -> ' + newState )
+        self.state = newState
+
 
     # #Objeto da classe que cuida dos pacotes
 

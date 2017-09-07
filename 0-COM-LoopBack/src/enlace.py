@@ -54,68 +54,107 @@ class enlace(object):
         com o servidor seja estabelecida """
         print(self.label, "Iniciando Handshake como Cliente")
         while client.handshake == False:
-            if client.state == 'STARTED':
+            if client.state == 'INICIAL':
                 # print(self.label, "Enviando SYN...")
                 self.sendSyn()
                 client.setState('ENVIANDO_SYN')
 
-            if client.state == 'ENVIANDO_SYN':
-                client.setState('AGUARDANDO_SYN+ACK')
-                self.ph.decode()
-                client.setState('ENVIANDO_ACK')
+            elif client.state == 'ENVIANDO_SYN':
+                client.setState('AGUARDANDO_SYN')
+                data = self.getData()
+                if data != False:
+                    p = self.ph.unpack(data)
+                    if p['type'] == 'SYN':
+                        client.setState('AGUARDANDO_ACK')
+            
+            elif client.state == 'AGUARDANDO_ACK':
+                data = self.getData()
+                if data != False:
+                    p = self.ph.unpack(data)
+                    if p['type'] == 'ACK':
+                        client.setState('ENVIANDO_ACK')
+                        self.sendAck()
+                        client.setState('CONECTADO')
+                        client.handshake = True
                 
-                client.setState('SYNACK_ENVIADO')
-                client.setState('ESPERANDO_ACKBACK')
-                time.sleep(5)
-
 
 
                 # print(self.label, "SYN Enviado...")
-                
-
-       
-            
-            # handshake = self.fh.decode(self.getData())
-            # if handshake != 'TIMEOUT':
-            #     if handshake["type"] == "SYN":
-            #         handshake = self.fh.decode(self.getData())
-            #         print(self.label, "SYN recebido...")
-            #         if handshake["type"] == "ACK":
-            #             print(self.label, "ACK recebido...")
-            #             self.sendAck()
-            #             print(self.label, "Enviado ACK de Client...")
-            #             self.connected = True
-            #             return self.connected
-            #         else:
-            #             print(self.label, "Erro no conect, SYN+ACK")
-            #             pass
-            # else:
-            #     print(self.label,'Tempo para handshake expirou!')
-            #     return handshake
-            #     break
+    # def connect(self):
+    #     """ Bloqueia a execução do programa até que uma conexão confiável
+    #     com o servidor seja estabelecida """
+    #     print(self.label, "Iniciando Handshake como Cliente")
+    #     print(self.label, "Enviando SYN...")
+    #     self.sendSyn()
+    #     print(self.label, "SYN Enviado...")
+    #     print(self.label, "Esperando pelo SYN+ACK do Servidor...")
+    #     syn = waitForSyn()
+    #     ack = waitforAck()
+    #     if syn and ack:
+    #         print(self.label, "SYN e ACK recebidos...")
+    #         print(self.label, "Enviando ACK de Client...")
+    #         self.sendAck()
+    #         print(self.label, "ACK de Client enviado...")
+    #         self.connected = True
+    #         print(self.label, "Conectado!")
+    #         return self.connected
+    #     else:
+    #         print(self.label, "[Connect] Handshake falhou!")
+    #         return self.connected
     
-    def bind(self):
+    def bind(self,server):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o cliente seja estabelecida """
         print(self.label, "Iniciando Handshake como Servidor")
-        while not self.connected:
-            print(self.label, 'Aguardando pedidos SYN...')
-            received = self.ph.decode(self.getData())
-            try:
-                print(self.label, 'Obtido {}'.format(received['type']))
-                if received["type"] == "SYN":
-                    self.sendSyn()
-                    self.sendAck()
-                    print(self.label, "Enviado SYN+ACK")
-                elif received["type"] == "ACK":
-                    print(self.label,"ACK recebido de volta")
-                    self.connected = True
-                else:
-                    print(self.label, "Ocorreu um erro... Enviando SYN+NACK")
-                    self.sendSyn()
-                    self.sendNack()
-            except:
-                pass
+        while server.handshake == False:
+            if server.state == 'INICIAL':
+                server.setState('AGUARDANDO_SYN')
+            
+            elif server.state == 'AGUARDANDO_SYN':
+                print(self.label, 'Aguardando pedidos SYN...')
+                data = self.getData()
+                if data:
+                    p = self.ph.unpack(data)
+                    if p['type'] == 'SYN':
+                        server.setState('ENVIANDO_SYN')
+
+            elif server.state == 'ENVIANDO_SYN':
+                self.sendSyn()
+                server.setState('ENVIANDO_ACK')
+    
+            elif server.state == 'ENVIANDO_ACK':
+                self.sendAck()
+                server.setState('AGUARDANDO_ACK')
+
+            elif server.state == 'AGUARDANDO_ACK':
+                data = self.getData()
+                if data:
+                    p = self.ph.unpack(data)
+                    if p['type'] == 'ACK':
+                        server.setState('CONECTADO')
+                        client.handshake = True
+
+                
+        # if syn:
+        #     print(self.label, '[DEBUG] Obtido {}'.format(received['type']))
+        #     print(self.label, "Enviando SYN e ACK...")
+        #     self.sendSyn()
+        #     self.sendAck()
+        #     print(self.label, "SYN e ACK enviados...")
+
+        # ack = waitforAck()
+        # if ack:
+        #     print(self.label,"ACK recebido de volta")
+        #     print(self.label,"Conectado!")
+        #     self.connected = True
+        #     return self.connected
+
+        # else:
+        #     print(self.label, "[Server] Handshake falhou!")
+        #     print(self.label, "Enviando SYN e NACK...")
+        #     self.sendSyn()
+        #     self.sendNack()
+        #     return self.connected
 
     
     def sendSyn(self):
@@ -129,6 +168,21 @@ class enlace(object):
     def sendNack(self):
         p = self.ph.buildCommandPacket("NACK")
         self.sendData(p)
+
+    def waitForSyn(self):
+        handshake = self.fh.decode(self.getData())
+        if handshake["type"] == "SYN":
+            return True
+        else:
+            return False
+
+    def waitForAck(self):
+        handshake = self.fh.decode(self.getData())
+        if handshake["type"] == "ACK":
+            return True
+        else:
+            return False
+
     
 
     ################################
@@ -141,29 +195,51 @@ class enlace(object):
 
     def getData(self):
         """ Get n data over the enlace interface
-
         """
-        notFound = True
-        while notFound:
-            pRaw, bufferEmpty = self.rx.getPacket()
-            print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)
-            if pRaw == False:
-                print(self.label,"Timeout: Buffer Empty")
-                notFound = True
-            elif bufferEmpty == False:
-                print("Timeout: Buffer corrompido")
+        packet = self.rx.getPacket()
+        print('Packet received @ getData',packet)
+
+        if packet != False:
+            p = PacketHandler().unpack(packet)
+            print(p)
+            if p['type'] == 'PAYLOAD' and p['size'] != len(p['payload']):
+                print(self.label,'Pacote corrompido, enviando NACK')
                 self.sendNack()
-                notFound = True   
-            else:
-                pDecoded = self.ph.decode(pRaw)
-                if pDecoded["type"] == "PAYLOAD":
-                    if pDecoded['size'] != len(pDecoded['payload']):
-                        print("Pacote corrompido... Enviando NACK")
-                        self.sendNack()
-                    else:
-                        return pDecoded
-                elif pDecoded["type"] == "ACK" or pDecoded["type"] == "SYN":
-                    return pDecoded
-                else:
-                    print("Nao é um payload ou comando... Enviado NACK")
-                    self.sendNack()
+                return False    
+            
+            return packet
+        
+        else:
+            print(self.label,'Timeout! Enviando NACK')
+            self.sendNack()
+            return False
+            
+        # while notFound :
+            # # pRaw, bufferEmpty = self.rx.getPacket()
+            # # print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)
+
+            # if pRaw == False:
+            #     print(self.label,"[getData] ", "Timeout: Buffer Empty")
+            #     notFound = True
+
+            # elif bufferEmpty == False:
+            #     print(self.label,"[getData] ","Timeout: Buffer corrompido")
+            #     self.sendNack()
+            #     notFound = True
+
+            # else:
+            #     pDecoded = self.fh.decode(pRaw)
+
+            #     if pDecoded["type"] == "PAYLOAD":
+            #         if pDecoded['size'] != len(pDecoded['payload']):
+            #             print(self.label,"[getData] ","Pacote corrompido... Enviando NACK...")
+            #             self.sendNack()
+            #         else:
+            #             return pDecoded
+
+            #     elif pDecoded["type"] == "ACK" or pDecoded["type"] == "SYN":
+            #         return pDecoded
+                
+            #     else:
+            #         print(self.label,"[getData] ","Nao é um payload ou comando... Enviado NACK")
+            #         self.sendNack()

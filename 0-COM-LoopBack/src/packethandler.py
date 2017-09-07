@@ -98,27 +98,23 @@ class PacketHandler(object):
         return self.buildHead() + open(self.filePath, 'rb').read() + self.buildEOP()
 
     #Realiza o desempacotamento
-    def decode(self,bincode):
-
-        if bincode == False:
-            return 'TIMEOUT'
-
+    def unpack(self,bincode):
         output = {}
+
+        print('PH - Trying to parse')
         decoded = self.headStruct.parse(bincode)
 
-        # print('[PARSE]',decoded)
+        print('[PARSE]',decoded)   
 
         # Constroi um dicionário normal com as informações do HEAD obtido
         for each in decoded.items():
             output[each[0]] = each[1]
-
-        # Faz slice dos bytes para separar o payload
-        barray = bytearray(bincode)
-        filebarray = barray[20:len(barray) - 18]
-        output['payload'] = filebarray
         
         # Escreve o arquivo na pasta received caso haja um payload
         if output['type'] == "PAYLOAD":
+            barray = bytearray(bincode)
+            filebarray = barray[20:len(barray) - 18]
+            output['payload'] = filebarray
             outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
             f = open(outputDir, 'wb')
             f.write(bytes(filebarray))
