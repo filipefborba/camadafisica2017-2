@@ -68,6 +68,8 @@ class enlace(object):
                     p = self.ph.unpack(data)
                     if p['type'] == 'SYN':
                         client.setState('AGUARDANDO_ACK')
+                    else:
+                        client.setState('ENVIANDO_SYN')
                 else:
                     client.setState('ENVIANDO_SYN')
             
@@ -83,7 +85,6 @@ class enlace(object):
                 else:
                     client.setState('INICIAL')
                 
-
     def bind(self,server):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o cliente seja estabelecida """
@@ -116,29 +117,6 @@ class enlace(object):
                     if p['type'] == 'ACK':
                         server.setState('CONECTADO')
                         server.handshake = True
-
-                
-        # if syn:
-        #     print(self.label, '[DEBUG] Obtido {}'.format(received['type']))
-        #     print(self.label, "Enviando SYN e ACK...")
-        #     self.sendSyn()
-        #     self.sendAck()
-        #     print(self.label, "SYN e ACK enviados...")
-
-        # ack = waitforAck()
-        # if ack:
-        #     print(self.label,"ACK recebido de volta")
-        #     print(self.label,"Conectado!")
-        #     self.connected = True
-        #     return self.connected
-
-        # else:
-        #     print(self.label, "[Server] Handshake falhou!")
-        #     print(self.label, "Enviando SYN e NACK...")
-        #     self.sendSyn()
-        #     self.sendNack()
-        #     return self.connected
-
     
     def sendSyn(self):
         p = self.ph.buildCommandPacket("SYN")
@@ -201,32 +179,3 @@ class enlace(object):
             else:
                 return False
                 
-        # while notFound :
-            # # pRaw, bufferEmpty = self.rx.getPacket()
-            # # print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)
-
-            # if pRaw == False:
-            #     print(self.label,"[getData] ", "Timeout: Buffer Empty")
-            #     notFound = True
-
-            # elif bufferEmpty == False:
-            #     print(self.label,"[getData] ","Timeout: Buffer corrompido")
-            #     self.sendNack()
-            #     notFound = True
-
-            # else:
-            #     pDecoded = self.fh.decode(pRaw)
-
-            #     if pDecoded["type"] == "PAYLOAD":
-            #         if pDecoded['size'] != len(pDecoded['payload']):
-            #             print(self.label,"[getData] ","Pacote corrompido... Enviando NACK...")
-            #             self.sendNack()
-            #         else:
-            #             return pDecoded
-
-            #     elif pDecoded["type"] == "ACK" or pDecoded["type"] == "SYN":
-            #         return pDecoded
-                
-            #     else:
-            #         print(self.label,"[getData] ","Nao é um payload ou comando... Enviado NACK")
-            #         self.sendNack()
