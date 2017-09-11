@@ -117,28 +117,6 @@ class enlace(object):
                         server.setState('CONECTADO')
                         server.handshake = True
 
-                
-        # if syn:
-        #     print(self.label, '[DEBUG] Obtido {}'.format(received['type']))
-        #     print(self.label, "Enviando SYN e ACK...")
-        #     self.sendSyn()
-        #     self.sendAck()
-        #     print(self.label, "SYN e ACK enviados...")
-
-        # ack = waitforAck()
-        # if ack:
-        #     print(self.label,"ACK recebido de volta")
-        #     print(self.label,"Conectado!")
-        #     self.connected = True
-        #     return self.connected
-
-        # else:
-        #     print(self.label, "[Server] Handshake falhou!")
-        #     print(self.label, "Enviando SYN e NACK...")
-        #     self.sendSyn()
-        #     self.sendNack()
-        #     return self.connected
-
     
     def sendSyn(self):
         p = self.ph.buildCommandPacket("SYN")
@@ -180,7 +158,7 @@ class enlace(object):
         """ Get n data over the enlace interface
         """
         packet = self.rx.getPacket()
-        print('Packet received @ getData', packet[0:20], '.....')
+        print('Packet received @ getData', packet)
 
         if packet != False:
             p = PacketHandler().unpack(packet)

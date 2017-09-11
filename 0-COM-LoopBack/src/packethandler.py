@@ -102,7 +102,7 @@ class PacketHandler(object):
         output = {}
         decoded = self.headStruct.parse(bincode)
 
-        print('[PARSE] Received packet',decoded['type'])   
+        # print('[PARSE] Received packet',decoded['type'])   
 
         # Constroi um dicionário normal com as informações do HEAD obtido
         for each in decoded.items():

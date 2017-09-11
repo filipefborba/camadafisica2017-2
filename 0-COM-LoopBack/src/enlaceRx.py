@@ -124,7 +124,7 @@ class RX(object):
                 self.threadResume()
 
                 packetBytes = b[head:eop + 18]
-                print( 'PACKET FOUND : ', packetBytes[0:20], '......' )
+                print( 'PACKET FOUND : ', packetBytes)
                 self.packetFound = False
                 return packetBytes
 
