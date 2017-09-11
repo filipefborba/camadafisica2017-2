@@ -94,4 +94,4 @@ class TX(object):
         """ Send data over the enlace interface
         """
         print("[enlaceTx] Enviando dados...")
-        self.tx.sendBuffer(data)
+        self.sendBuffer(data)
