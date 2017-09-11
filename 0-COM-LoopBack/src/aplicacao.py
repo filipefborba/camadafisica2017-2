@@ -32,10 +32,9 @@ class Application:
             self.serialName = "/dev/tty.usbmodem1421"
         else:
             self.serialName = "COM3"   
-        
+    
         self.role = role
         self.ph = PacketHandler()
-
         self.com = enlace(self)
         self.com.enable()
         # self.com.rx.clearBuffer()
@@ -51,6 +50,7 @@ class Application:
         elif self.role == 'server':
             self.server = Server(self)
 
+        
     def main(self):
         print("Main thread Iniciada")
 
@@ -104,6 +104,7 @@ class Client:
                     if p['type'] == 'ACK':
                         print('[Client] Sucesso no envio, encerrando comunicação')
                         self.setState('ENCERRANDO_COMUNICACAO')
+                        self.stateMachineRunning = False
                     else:
                         self.setState('ENVIANDO_PACOTE')
                 else:
