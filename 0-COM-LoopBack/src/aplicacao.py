@@ -51,7 +51,6 @@ class Application:
         elif self.role == 'server':
             self.server = Server(self)
 
-
     def main(self):
         print("Main thread Iniciada")
 
@@ -68,6 +67,7 @@ class Client:
         else:
             self.app.com.connect(self)
             if self.handshake == True:
+                time.sleep(0.1)
                 self.app.com.sendData(PacketHandler().buildPacket(filePath))
 
     def getState(self):
