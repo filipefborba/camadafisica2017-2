@@ -24,10 +24,11 @@ class enlace(object):
     """ This class implements methods to the interface between Enlace and Application
     """
 
-    def __init__(self, name):
+    def __init__(self, app):
         """ Initializes the enlace class
         """
-        self.fisica      = fisica(name)
+        self.app         = app
+        self.fisica      = fisica(app.serialName)
         self.rx          = RX(self.fisica)
         self.tx          = TX(self.fisica)
         self.connected   = False
@@ -55,17 +56,21 @@ class enlace(object):
         print(self.label, "Iniciando Handshake como Cliente")
         while client.handshake == False:
             if client.state == 'INICIAL':
-                print(self.label, "Enviando SYN...")
-                self.sendSyn()
                 client.setState('ENVIANDO_SYN')
 
             elif client.state == 'ENVIANDO_SYN':
+                self.sendSyn()
                 client.setState('AGUARDANDO_SYN')
+                
+
+            elif client.state == 'AGUARDANDO_SYN':
                 data = self.getData()
                 if data != False:
                     p = self.ph.unpack(data)
                     if p['type'] == 'SYN':
                         client.setState('AGUARDANDO_ACK')
+                else:
+                    client.setState('ENVIANDO_SYN')
             
             elif client.state == 'AGUARDANDO_ACK':
                 data = self.getData()
@@ -208,9 +213,12 @@ class enlace(object):
                 return False
             return packet
         
-        else:
+        elif self.app.role == 'server':
             print(self.label,'Timeout! Enviando NACK')
             self.sendNack()
+            return False
+
+        else:
             return False
             
         # while notFound :

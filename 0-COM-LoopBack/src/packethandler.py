@@ -100,11 +100,9 @@ class PacketHandler(object):
     #Realiza o desempacotamento
     def unpack(self,bincode):
         output = {}
-
-        print('PH - Trying to parse')
         decoded = self.headStruct.parse(bincode)
 
-        print('[PARSE]',decoded)   
+        print('[PARSE] Received packet',decoded['type'])   
 
         # Constroi um dicionário normal com as informações do HEAD obtido
         for each in decoded.items():

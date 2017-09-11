@@ -31,11 +31,15 @@ class Application:
         if os.name == 'posix':
             self.serialName = "/dev/tty.usbmodem1421"
         else:
-            self.serialName = "COM3"    
-        self.com = enlace(self.serialName)
+            self.serialName = "COM3"   
+        
         self.role = role
-        self.fh = PacketHandler()
+        self.ph = PacketHandler()
+
+        self.com = enlace(self)
         self.com.enable()
+        self.com.rx.clearBuffer()
+
         print(label,
         """
         Application iniciada
