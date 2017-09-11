@@ -62,7 +62,6 @@ class enlace(object):
                 self.sendSyn()
                 client.setState('AGUARDANDO_SYN')
                 
-
             elif client.state == 'AGUARDANDO_SYN':
                 data = self.getData()
                 if data != False:
@@ -81,32 +80,10 @@ class enlace(object):
                         self.sendAck()
                         client.setState('CONECTADO')
                         client.handshake = True
+                else:
+                    client.setState('INICIAL')
                 
 
-
-                # print(self.label, "SYN Enviado...")
-    # def connect(self):
-    #     """ Bloqueia a execução do programa até que uma conexão confiável
-    #     com o servidor seja estabelecida """
-    #     print(self.label, "Iniciando Handshake como Cliente")
-    #     print(self.label, "Enviando SYN...")
-    #     self.sendSyn()
-    #     print(self.label, "SYN Enviado...")
-    #     print(self.label, "Esperando pelo SYN+ACK do Servidor...")
-    #     syn = waitForSyn()
-    #     ack = waitforAck()
-    #     if syn and ack:
-    #         print(self.label, "SYN e ACK recebidos...")
-    #         print(self.label, "Enviando ACK de Client...")
-    #         self.sendAck()
-    #         print(self.label, "ACK de Client enviado...")
-    #         self.connected = True
-    #         print(self.label, "Conectado!")
-    #         return self.connected
-    #     else:
-    #         print(self.label, "[Connect] Handshake falhou!")
-    #         return self.connected
-    
     def bind(self,server):
         """ Bloqueia a execução do programa até que uma conexão confiável
         com o cliente seja estabelecida """
@@ -125,6 +102,7 @@ class enlace(object):
 
             elif server.state == 'ENVIANDO_SYN':
                 self.sendSyn()
+                time.sleep(0.1)
                 server.setState('ENVIANDO_ACK')
     
             elif server.state == 'ENVIANDO_ACK':
@@ -202,25 +180,27 @@ class enlace(object):
         """ Get n data over the enlace interface
         """
         packet = self.rx.getPacket()
-        print('Packet received @ getData',packet)
+        print('Packet received @ getData', packet[0:20], '.....')
 
         if packet != False:
             p = PacketHandler().unpack(packet)
-            print(p)
             if p['type'] == 'PAYLOAD' and p['size'] != len(p['payload']):
                 print(self.label,'Pacote corrompido, enviando NACK')
                 self.sendNack()
                 return False
+            
             return packet
-        
-        elif self.app.role == 'server':
-            print(self.label,'Timeout! Enviando NACK')
-            self.sendNack()
-            return False
 
         else:
-            return False
-            
+
+            if self.app.role == 'server':
+                print(self.label,'Timeout! Enviando NACK')
+                self.sendNack()
+                return False
+
+            else:
+                return False
+                
         # while notFound :
             # # pRaw, bufferEmpty = self.rx.getPacket()
             # # print(self.label,"GetPacket(): pRaw", pRaw,"\n BufferEmpty:", bufferEmpty)

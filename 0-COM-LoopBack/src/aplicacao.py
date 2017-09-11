@@ -38,7 +38,7 @@ class Application:
 
         self.com = enlace(self)
         self.com.enable()
-        self.com.rx.clearBuffer()
+        # self.com.rx.clearBuffer()
 
         print(label,
         """
@@ -76,13 +76,12 @@ class Client:
         print('Classe Client Iniciada')
 
     def sendFile(self,filePath):
-        file = open(filePath, 'rb').read()
         if self.handshake:
-            self.app.com.sendData(PacketHandler().buildPacket(file))
+            self.app.com.sendData(PacketHandler().buildPacket(filePath))
         else:
             self.app.com.connect(self)
             if self.handshake == True:
-                self.app.com.sendData(PacketHandler().buildPacket(file))
+                self.app.com.sendData(PacketHandler().buildPacket(filePath))
 
     def getState(self):
         return self.state
@@ -157,7 +156,9 @@ class Server:
         else:
             self.app.com.bind(self)
             if self.handshake == True:
-                self.app.com.getData()
+                filePacket = self.app.com.getData()
+                if filePacket != False:
+                    print('[SERVER] File written successfully')
 
     def getState(self):
         return self.state
