@@ -124,18 +124,38 @@ class Server:
         self.handshake = False
         self.state = 'INICIAL'
         self.app = app
+        self.stateMachineRunning = True
         print('Classe Server Iniciada')
-        self.getFile()
+        self.startServerStateMachine()
         
     def getFile(self):
-        if self.handshake:
-            self.app.com.getData()
-        else:
-            self.app.com.bind(self)
-            if self.handshake == True:
-                filePacket = self.app.com.getData()
-                if filePacket != False:
-                    print('[SERVER] File written successfully')
+        filePacket = self.app.com.getData()
+        if filePacket != False:
+            print('[SERVER] File written successfully')
+
+    def startServerStateMachine(self):
+        """Máquina de Estados para envio de ACK e NACK ao receber payloads"""
+
+        while self.stateMachineRunning == True:
+            # Checa se o handshake já foi efetuado, caso contrário, o faz
+            if self.handshake == False:
+                self.setState('INICIAL')
+                self.app.com.bind(self)
+            
+            elif self.state == 'CONECTADO':
+                time.sleep(0.1)
+                self.setState('RECEBENDO_PACOTE')
+
+            elif self.state == 'RECEBENDO_PACOTE':
+                file = self.getFile()
+                if file:
+                    self.setState('ENVIANDO_ACK')
+                else:
+                    self.setState('ENVIANDO_ACK')
+            
+            elif self.state == 'ENVIANDO_ACK':
+                self.app.com.sendAck()
+                self.setState('RECEBENDO_PACOTE')
                     
 
     def getState(self):
