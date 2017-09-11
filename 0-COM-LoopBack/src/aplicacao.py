@@ -8,9 +8,8 @@
 ####################################################
 
 from enlace import *
-from filehandler import *
+from packethandler import *
 import time
-from loader import Screen
 from datetime import datetime
 import os
 import threading 
@@ -22,156 +21,84 @@ import threading
 # serialName = "/dev/ttyACM0"           # Ubuntu (variacao de)
 # serialName = "/dev/tty.usbmodem1411" # Mac    (variacao de)
 # serialName = "COM3"                  # Windows(variacao de)
-
-if os.name == 'posix':
-    serialName = "/dev/tty.usbmodem1421"
-else:
-    serialName = "COM3"     
+ 
 
 global label
 label = '[MAIN]'
 
-def main():
-    # Inicializa enlace
-    com = enlace(serialName)
-
-    # Ativa comunicacao
-    com.enable()
-
-    # Define a role selecionada na GUI
-    role = screen.getSelected()
-    print(label, 'Papel selecionado:',role)
-
-    # Programa para o cliente
-    if role == 'client':
-        com.rx.setRole('client')
-        # Endereco da imagem a ser transmitida
-        print("""--------- CLIENTE ------------
-        Comunicação inicializada 
-        porta : {}"
-        """.format(com.fisica.name))
-        screen.updateText('Insira o arquivo abaixo')
-        print(label,'Aguardando a inserção de um arquivo')
-        
-        # Checa se o cliente selecionou um arquivo para ser enviado
-        if screen.getImageDir() != None:
-            imageR = screen.getImageDir()
-            print(label, "Endereço da Imagem Selecionada: " + imageR)
-
-            #Aguardando Handshake com o servidor
-            response = com.conecta()
-            if response == 'TIMEOUT':
-                print(label,'TIMEOUT!')
-                screen.updateText('TIMEOUT')
-                com.disable()
-                return
-
-            print("Handshake efetuado!")
-            time.sleep(2)
-
-            # Carrega imagem
-            print (label, "Carregando imagem para transmissão :")
-            print (label, " - {}".format(imageR))
-            # print("-------------------------")
-            txBuffer = open(imageR, 'rb').read()
-            txLen    = len(txBuffer)
-
-
-            print(label, "Transmitindo .... {} bytes".format(txLen))
-
-            # Transmite a imagem e marca o tempo
-            now = datetime.now().microsecond
-            com.sendData(FileHandler().buildPacket(imageR))
-
-            # espera o fim da transmissão
-            while(com.tx.getIsBussy()):
-                pass
-
-            # Atualiza dados da transmissão
-            txSize = com.tx.getStatus()
-
-            #Calcula o tempo de transmissão
-            finished = datetime.now().microsecond
-            delta = now - finished
-            print (label,"Transmitido       {} bytes ".format(txSize))
-            print (label,"Processo finalizado em ",delta," ms")
-            print (label,"Envio realizado, cliente pronto para enviar novamente")
-            com.disable()
+class Application:
+    def __init__(self,role):
+        if os.name == 'posix':
+            self.serialName = "/dev/tty.usbmodem1421"
         else:
-            print(label, 'Nenhuma imagem selecionada, tente novamente')
+            self.serialName = "COM3"   
+        
+        self.role = role
+        self.ph = PacketHandler()
+
+        self.com = enlace(self)
+        self.com.enable()
+        # self.com.rx.clearBuffer()
+
+        print(label,
+        """
+        Application iniciada
+        Papel selecionado: {}
+        """.format(self.role))
+        
+        if self.role == 'client':
+            self.client = Client(self)
+        elif self.role == 'server':
+            self.server = Server(self)
 
 
-    elif role == 'server':
-        com.rx.setRole('server')
-        #Variável indicando que o servidor está pronto para receber arquivos
-        serverReady = True
-
-        #Objeto da classe que cuida dos pacotes
-        fh = FileHandler()
-
-        #Remove resquícios de comunicações antigas
-        com.rx.clearBuffer()
-
-        # fh.decode(fh.buildPacket('./imgs/imageC.png'))
-
-        while serverReady:
-            #Mostra na tela o seguinte texto
-            screen.updateText('Aguardando conexão...')
-            print(label,"Aguardando dados .... ")
-
-            #Faz a recepção dos dados
-            # rxBuffer = com.getData()
-
-            com.bind()
-            screen.updateText('Handshake estabelecido!')
-            print(label,"Handshake efetuado")
-            #Começa a calcular o tempo de recepção
-            now = datetime.now().microsecond
-            
-            # Salva imagem recebida em arquivo
-            received = fh.decode(com.getData())
-            if received == 'TIMEOUT':
-                print(label,'TIMEOUT')
-                
-            outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
-
-            print(label, '---------- RECEIVED DATA ----------')
-           
-            for i in received.keys():
-                if i == 'payload':
-                    print(' -> payload : {} ... '.format(received[i][:15]))
-                else:
-                    print(' -> {} : {} '.format(i,received[i]))
-            
-            #Tamanho do arquivo lido
-            print (label, "Lido {} bytes ".format(received['size']))
+    def main(self):
+        print("Main thread Iniciada")
     
-            print(label, """
-            Salvando dados no arquivo : - {}
-            FILE LEN : {}
-            """.format(outputDir,len(received['payload'])))
+class Client:
+    def __init__(self,app):  
+        self.handshake = False
+        self.state = 'INICIAL'
+        self.app = app
+        print('Classe Client Iniciada')
 
-            #outputDir = "./received/{}.{}".format(received['filename'],received['ext'])
-            # print( 'NAME JOINED ' + outputDir)
-            # f = open(outputDir, 'wb')
-            # f.write(bytes(received['payload']))
-            # print('[INFO]: Arquivo escrito com sucesso no diretório ' + outputDir )
-            # print()
-            #Calcula o tempo de recepção
-            finished = datetime.now().microsecond
-            delta = now - finished
-            print ("Processo finalizado em ",delta," ms")
-            time.sleep(2)
+    def sendFile(self,filePath):
+        if self.handshake:
+            self.app.com.sendData(PacketHandler().buildPacket(filePath))
+        else:
+            self.app.com.connect(self)
+            if self.handshake == True:
+                time.sleep(0.1)
+                self.app.com.sendData(PacketHandler().buildPacket(filePath))
 
-            print("----------------------------\n[INFO] Servidor pronto \n")
+    def getState(self):
+        return self.state
+    
+    def setState(self,newState):
+        print('[Client] State changed! ' + self.state + ' -> ' + newState )
+        self.state = newState
 
-    else:
-        print('Ocorreu um erro...')
+class Server:
+    def __init__(self,app):
+        self.handshake = False
+        self.state = 'INICIAL'
+        self.app = app
+        print('Classe Server Iniciada')
+        self.getFile()
+        
+    def getFile(self):
+        if self.handshake:
+            self.app.com.getData()
+        else:
+            self.app.com.bind(self)
+            if self.handshake == True:
+                filePacket = self.app.com.getData()
+                if filePacket != False:
+                    print('[SERVER] File written successfully')
 
-
-# if __name__ == "__main__":
-#     main()
-
-screen = Screen()
-screen.setFn(main)
-screen.start()
+    def getState(self):
+        return self.state
+    
+    def setState(self,newState):
+        print('[Server] State changed! ' + self.state + ' -> ' + newState )
+        self.state = newState

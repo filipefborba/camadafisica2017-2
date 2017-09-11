@@ -34,8 +34,6 @@ class TX(object):
         """
         while not self.threadStop:
             if(self.threadMutex):
-                print("[enlaceTx] Enviando dados...")
-                # print(self.buffer)
                 self.transLen    = self.fisica.write(self.buffer)
                 self.threadMutex = False
 
@@ -95,4 +93,5 @@ class TX(object):
     def sendData(self, data):
         """ Send data over the enlace interface
         """
-        self.tx.sendBuffer(data)
+        print("[enlaceTx] Enviando dados...")
+        self.sendBuffer(data)
