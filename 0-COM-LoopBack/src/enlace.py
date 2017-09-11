@@ -55,7 +55,7 @@ class enlace(object):
         print(self.label, "Iniciando Handshake como Cliente")
         while client.handshake == False:
             if client.state == 'INICIAL':
-                # print(self.label, "Enviando SYN...")
+                print(self.label, "Enviando SYN...")
                 self.sendSyn()
                 client.setState('ENVIANDO_SYN')
 
@@ -132,7 +132,7 @@ class enlace(object):
                     p = self.ph.unpack(data)
                     if p['type'] == 'ACK':
                         server.setState('CONECTADO')
-                        client.handshake = True
+                        server.handshake = True
 
                 
         # if syn:
@@ -170,14 +170,14 @@ class enlace(object):
         self.sendData(p)
 
     def waitForSyn(self):
-        handshake = self.fh.decode(self.getData())
+        handshake = self.ph.unpack(self.getData())
         if handshake["type"] == "SYN":
             return True
         else:
             return False
 
     def waitForAck(self):
-        handshake = self.fh.decode(self.getData())
+        handshake = self.ph.unpack(self.getData())
         if handshake["type"] == "ACK":
             return True
         else:
@@ -205,8 +205,7 @@ class enlace(object):
             if p['type'] == 'PAYLOAD' and p['size'] != len(p['payload']):
                 print(self.label,'Pacote corrompido, enviando NACK')
                 self.sendNack()
-                return False    
-            
+                return False
             return packet
         
         else:

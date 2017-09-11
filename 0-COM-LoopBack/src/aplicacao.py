@@ -65,7 +65,7 @@ class Application:
 #     role = ui.getRole()
     
 class Client:
-    def __init__(self,app):
+    def __init__(self,app):  
         self.handshake = False
         self.state = 'INICIAL'
         self.app = app
@@ -153,7 +153,7 @@ class Server:
         else:
             self.app.com.bind(self)
             if self.handshake == True:
-                self.app.com.sendData(filePath)
+                self.app.com.getData()
 
     def getState(self):
         return self.state

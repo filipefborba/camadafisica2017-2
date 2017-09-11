@@ -113,8 +113,8 @@ class RX(object):
             runtime = time.time()
 
             eop = self.buffer.find(b'626f72626166726564')
-
             print ('delta t :',runtime - startTime)
+
             if eop != -1:
                 b = self.buffer
                 self.packetFound = True
