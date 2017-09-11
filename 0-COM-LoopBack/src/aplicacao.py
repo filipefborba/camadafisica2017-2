@@ -58,17 +58,59 @@ class Client:
     def __init__(self,app):  
         self.handshake = False
         self.state = 'INICIAL'
+        self.stateMachineRunning = False
         self.app = app
         print('Classe Client Iniciada')
 
-    def sendFile(self,filePath):
-        if self.handshake:
-            self.app.com.sendData(PacketHandler().buildPacket(filePath))
-        else:
-            self.app.com.connect(self)
-            if self.handshake == True:
+    # def sendFile(self,filePath):
+    #     if self.handshake:
+    #         self.app.com.sendData(PacketHandler().buildPacket(filePath))
+    #     else:
+    #         self.app.com.connect(self)
+    #         if self.handshake == True:
+    #             time.sleep(0.1)
+    #             self.app.com.sendData(PacketHandler().buildPacket(filePath))
+
+    def sendFile(self):
+        self.app.com.sendData(PacketHandler().buildPacket(self.fileDir))
+
+    def onSendButtonClicked(self,fileDir):
+        self.stateMachineRunning = True
+        self.fileDir = fileDir
+        self.startClientStateMachine()
+
+    def startClientStateMachine(self):
+        """Máquina de Estados para envio e recepcao de ACKS e NACKS ao enviar
+        payloads"""
+
+        while self.stateMachineRunning == True:
+            # Checa se o handshake já foi efetuado, caso contrário, o faz
+            if self.handshake == False:
+                self.setState('INICIAL')
+                self.app.com.connect(self)
+            
+            elif self.state == 'CONECTADO':
                 time.sleep(0.1)
-                self.app.com.sendData(PacketHandler().buildPacket(filePath))
+                self.setState('ENVIANDO_PACOTE')
+
+            elif self.state == 'ENVIANDO_PACOTE':
+                self.sendFile()
+                self.setState('AGUARDANDO_ACK')
+            
+            elif self.state == 'AGUARDANDO_ACK':
+                data = self.app.com.getData()
+                if data != False:
+                    p = self.app.ph.unpack(data)
+                    if p['type'] == 'ACK':
+                        print('[Client] Sucesso no envio, encerrando comunicação')
+                        self.setState('ENCERRANDO_COMUNICACAO')
+                    else:
+                        self.setState('ENVIANDO_PACOTE')
+                else:
+                    self.setState('ENVIANDO_PACOTE')
+
+            else:
+                print('[Client] Fim da maquina de estados por algum motivo')
 
     def getState(self):
         return self.state
@@ -94,6 +136,7 @@ class Server:
                 filePacket = self.app.com.getData()
                 if filePacket != False:
                     print('[SERVER] File written successfully')
+                    
 
     def getState(self):
         return self.state

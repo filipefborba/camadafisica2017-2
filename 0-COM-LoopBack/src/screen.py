@@ -85,8 +85,7 @@ class Screen:
             self.fileDir = None
             print('Nenhum arquivo selecionado... Aguardando seleção')
         else:
-            self.app.client.sendFile(self.fileDir)
-            self.sendButton = tk.Button(self.window,command=self.btnfn)
+            self.sendButton = tk.Button(self.window,command=lambda: self.app.client.onSendButtonClicked(self.fileDir))
             self.sendButton.configure(text='Enviar',fg='white',bg='#006400',highlightbackground='#006400',font=('calibri', 15, 'bold'))
             self.sendButton.place(rely=1.0, relx=1.0, x=-162.5, y=-5, anchor='sw')
 
