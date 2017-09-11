@@ -131,7 +131,7 @@ class RX(object):
                 self.packetFound = False
                 return packetBytes
 
-            elif runtime - startTime >= 20:
+            elif runtime - startTime >= 2:
                 print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
                 return False
     
