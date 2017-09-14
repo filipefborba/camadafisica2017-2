@@ -32,10 +32,9 @@ class Application:
             self.serialName = "/dev/tty.usbmodem1421"
         else:
             self.serialName = "COM3"   
-        
+    
         self.role = role
         self.ph = PacketHandler()
-
         self.com = enlace(self)
         self.com.enable()
         # self.com.rx.clearBuffer()
@@ -51,31 +50,45 @@ class Application:
         elif self.role == 'server':
             self.server = Server(self)
 
-
+        
     def main(self):
         print("Main thread Iniciada")
-    
+
 class Client:
     def __init__(self,app):  
         self.handshake = False
         self.state = 'INICIAL'
+        self.stateMachineRunning = False
         self.app = app
+        self.filePackets = []
+        self.fileDir = ''
         print('Classe Client Iniciada')
 
-    def sendFile(self,filePath):
-        if self.handshake:
-            self.app.com.sendData(PacketHandler().buildPacket(filePath))
-        else:
-            self.app.com.connect(self)
-            if self.handshake == True:
-                time.sleep(0.1)
-                self.app.com.sendData(PacketHandler().buildPacket(filePath))
+    # def sendFile(self,filePath):
+    #     if self.handshake:
+    #         self.app.com.sendData(PacketHandler().buildPacket(filePath))
+    #     else:
+    #         self.app.com.connect(self)
+    #         if self.handshake == True:
+    #             time.sleep(0.1)
+    #             self.app.com.sendData(PacketHandler().buildPacket(filePath))
+
+
+
+    def onSendButtonClicked(self,fileDir):
+        self.stateMachineRunning = True
+        self.fileDir = fileDir
+        self.filePackets = PacketHandler().buildPacket(self.fileDir)
+        self.app.com.startClientStateMachine(self)
+
+    # def sendFile(self):
+    #     self.app.com.sendFilePackets(PacketHandler().buildPacket(self.fileDir))    
 
     def getState(self):
         return self.state
     
     def setState(self,newState):
-        print('[Client] State changed! ' + self.state + ' -> ' + newState )
+        # print('[Client] State changed! ' + self.state + ' -> ' + newState )
         self.state = newState
 
 class Server:
@@ -83,22 +96,25 @@ class Server:
         self.handshake = False
         self.state = 'INICIAL'
         self.app = app
+        self.stateMachineRunning = True
+        self.ph = PacketHandler()
         print('Classe Server Iniciada')
-        self.getFile()
+        self.app.com.startServerStateMachine(self)
         
     def getFile(self):
-        if self.handshake:
-            self.app.com.getData()
+        filePacket = self.app.com.getData()
+        if filePacket != False:
+            # decodedFilePacket = self.ph.unpack(filePacket)
+            # self.ph.printHead(decodedFilePacket)
+            # print('[SERVER] Arquivo recebido com sucesso!')
+            self.setState('AGUARDANDO_PACOTE')
+            return True
         else:
-            self.app.com.bind(self)
-            if self.handshake == True:
-                filePacket = self.app.com.getData()
-                if filePacket != False:
-                    print('[SERVER] File written successfully')
+            return False
 
     def getState(self):
         return self.state
     
     def setState(self,newState):
-        print('[Server] State changed! ' + self.state + ' -> ' + newState )
+        # print('[Server] State changed! ' + self.state + ' -> ' + newState )
         self.state = newState

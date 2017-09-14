@@ -74,3 +74,21 @@ Depois, as imagens a seguir representam o envio e recepção dos pacotes como um
 ![Imgur](http://i.imgur.com/jkEcQQJ.jpg)
 
 Por fim, é possível notar que deve existir um "timeout" para que o programa não fique interrompido na mesma tarefa. O tempo para timeout escolhido foi de 5 segundos, pois consideramos o suficiente para o envio e processamento do handshake.
+
+# Projeto 4
+
+Esse projeto consiste na melhora da confiança do protocolo ao receber e enviar dados. Isso ocorre, porque através de pequenos pacotes que fragmentam o arquivo total, existem menos falhas e, caso elas ocorram, é mais fácil tratá-las. Imagine enviar se uma falha ocorrer, mas ao invés de reenviar o tamanho do arquivo, apenas uma fração bem pequena é reenviada!
+
+Para tanto, utilizamos um tamanho máximo dos "pacotinhos" de 2048 bytes e dividimos o tamanho do arquivo total por esses bytes. Caso o resto da divisão dê exata, não é necessário adicionar mais um pacote para enviar aquele restante de bytes.
+
+O HEAD, então, teve de ser modificado. Agora ele possui os campos:
+* size = Tamanho total do arquivo a ser enviado,
+* slicesize = 2048 bytes (tamanho dos pacotinhos),
+* filename = Nome do Arquivo (até 16 caracteres)
+* ext = Extensão (PNG, JPEG, JPG...)
+* type = Tipo de Arquivo (SYN, ACK, NACK, PAYLOAD)
+* index = Array com o [Indice do Pacote, Indice Total]
+
+Dessa vez, utilizamos um timeout de 4 segundos, pois é suficiente para Handshake e início de envio do primeiro pacotinho.
+
+Para realizar o checksum, utilizamos um gerador de hash chamado MD5, que gera uma chave única para um determinado payload de pacote. Com isso, conseguimos realizar um checksum, mandar o hash através do pacote e realizar o checksum novamente, tendo certeza de que o pacote certo chegou.

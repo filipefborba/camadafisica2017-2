@@ -124,16 +124,16 @@ class RX(object):
                 self.threadResume()
 
                 packetBytes = b[head:eop + 18]
-                print( 'PACKET FOUND : ', packetBytes[0:20], '......' )
+                # print( 'PACKET FOUND : ', packetBytes, '\n CURRENT BUFFER:',b)
                 self.packetFound = False
                 return packetBytes
 
-            elif runtime - startTime >= 2:
+            elif runtime - startTime >= 4:
                 print('[enlaceRx] Tempo para recebimento de confirmação expirou.')
                 return False
     
             else:
-                time.sleep(0.1)
+                time.sleep(0.025)
 
 
     def clearBuffer(self):
