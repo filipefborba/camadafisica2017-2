@@ -145,7 +145,7 @@ class enlace(object):
                     p = server.ph.unpack(file)
                     headchecksum = server.ph.generateHeadChecksum(p['head'])
                     payloadchecksum = server.ph.generatePayloadChecksum(p['payload'])
-                    print('HOLYYYYYYYYY', p['headchecksum'],'\n',headchecksum)
+                    # print('HOLYYYYYYYYY', p['headchecksum'],'\n',headchecksum)
                     if (p['headchecksum'] == headchecksum) and (p['payloadchecksum'] == payloadchecksum):
                         index = p['index']
                         currentSize += p['slicesize']

@@ -136,12 +136,12 @@ class PacketHandler(object):
             head = self.buildHead(i+1,packetCount,len(slice))
             headChecksum = self.generateHeadChecksum(head)
             payloadChecksum = self.generatePayloadChecksum(slice)
-            print("""
-            HeadChecksum : {}
-            HeadChecksum len : {}
-            PayloadChecksum : {}
-            PayloadChecksum len : {}
-            """.format(headChecksum, len(headChecksum), payloadChecksum, len(payloadChecksum)))
+            # print("""
+            # HeadChecksum : {}
+            # HeadChecksum len : {}
+            # PayloadChecksum : {}
+            # PayloadChecksum len : {}
+            # """.format(headChecksum, len(headChecksum), payloadChecksum, len(payloadChecksum)))
             filePackets.append({
                 'status'    : 'READY',
                 'packet'    :  head + headChecksum + slice + payloadChecksum + self.buildEOP(),
@@ -171,10 +171,10 @@ class PacketHandler(object):
             head = barray[:46]
             headChecksum = barray[46:110]
             payloadChecksum = barray[len(barray) - (18+64):len(barray) - 18]
-            print("""
-            headChecksum: {}
-            payloadChecksum: {}
-            """.format(headChecksum, payloadChecksum))
+            # print("""
+            # headChecksum: {}
+            # payloadChecksum: {}
+            # """.format(headChecksum, payloadChecksum))
             self.fileBuffer += filebarray
             self.outputDir = "./received/{}.{}".format(output['filename'],output['ext'])
             output['payload'] = filebarray
